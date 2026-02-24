@@ -1,0 +1,183 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: 'Inter', sans-serif;
+    background:#111111;
+    color:#ffffff;
+    overflow:hidden;
+}
+
+/* ===== Background Glow seperti referensi ===== */
+.hero-bg{
+    position:absolute;
+    width:800px;
+    height:800px;
+    background:radial-gradient(circle,
+        rgba(255,193,7,0.15) 0%,
+        rgba(17,17,17,0.8) 60%);
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    filter:blur(80px);
+    z-index:0;
+}
+
+/* ===== Layout ===== */
+.container{
+    display:flex;
+    height:100vh;
+    position:relative;
+    z-index:2;
+}
+
+/* ===== LEFT SIDE ===== */
+.left{
+    flex:1;
+    padding:80px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:40px;
+}
+
+.logo-box{
+    width:24px;
+    height:24px;
+    background:#ffc107;
+    border-radius:4px;
+}
+
+.logo h1{
+    font-size:20px;
+    font-weight:600;
+}
+
+.logo span{
+    color:#ffc107;
+}
+
+.left h2{
+    font-size:42px;
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+.left p{
+    color:#b5b5b5;
+    max-width:480px;
+    line-height:1.6;
+    margin-bottom:50px;
+}
+
+/* ===== Building Image ===== */
+.building-image img{
+    width:420px;
+    opacity:0.9;
+    filter:drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+    animation:fadeUp 1.2s ease;
+}
+
+/* ===== RIGHT SIDE ===== */
+.right{
+    width:520px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* ===== Login Card ===== */
+.login-card{
+    width:380px;
+    padding:50px;
+    background:#1a1a1a;
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius:12px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.6);
+}
+
+.login-card h3{
+    margin-bottom:8px;
+    font-size:22px;
+}
+
+.login-card p{
+    font-size:13px;
+    color:#aaa;
+    margin-bottom:35px;
+}
+
+/* ===== Input ===== */
+.form-group{
+    position:relative;
+    margin-bottom:28px;
+}
+
+.form-group input{
+    width:100%;
+    padding:12px;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid #444;
+    color:#fff;
+    outline:none;
+}
+
+.form-group label{
+    position:absolute;
+    top:12px;
+    left:0;
+    font-size:13px;
+    color:#777;
+    transition:0.3s;
+}
+
+.form-group input:focus ~ label,
+.form-group input:valid ~ label{
+    top:-10px;
+    font-size:11px;
+    color:#ffc107;
+}
+
+.form-group input:focus{
+    border-bottom:1px solid #ffc107;
+}
+
+/* ===== Button ===== */
+button{
+    width:100%;
+    padding:14px;
+    background:#ffc107;
+    border:none;
+    color:#111;
+    font-weight:600;
+    border-radius:6px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#ffca2c;
+    transform:translateY(-2px);
+}
+
+/* ===== Animation ===== */
+@keyframes fadeUp{
+    from{opacity:0; transform:translateY(30px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* ===== Responsive ===== */
+@media(max-width:1000px){
+    .left{display:none;}
+    .right{width:100%;}
+}

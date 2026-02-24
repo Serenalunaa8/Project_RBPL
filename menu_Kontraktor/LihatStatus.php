@@ -42,7 +42,7 @@ $query = "SELECT * FROM form_izin_pekerjaan
           ORDER BY created_at DESC
           LIMIT $start, $limit";
 
-$result = mysqli_query($conn, $query);
+$result = mysqli_query($koneksi, $query);
 ?>
 
 <h2>Status Izin Pekerjaan</h2>
@@ -72,7 +72,8 @@ $result = mysqli_query($conn, $query);
     <th>Lokasi</th>
     <th>Tanggal</th>
     <th>Status</th>
-    <th>Catatan</th>
+    <th>Catatan Kontraktor</th>
+    <th>Catatan Pengawas</th>
 </tr>
 
 <?php while($row = mysqli_fetch_assoc($result)) { ?>

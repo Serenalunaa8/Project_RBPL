@@ -1,11 +1,18 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 include '../koneksi.php';
 
-/* ====== CEK ROLE ====== */
+/* ====== CEK LOGIN & ROLE ====== */
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'kontraktor') {
     header("Location: ../login.php");
     exit();
+}
+
+if (!isset($_SESSION['id'])) {
+    die("Session ID tidak ditemukan. Pastikan login menyimpan session id.");
 }
 
 $notifikasi = "";
@@ -32,49 +39,28 @@ $material_options = [
     'Bata Ringan (Hebel)',
     'Baja Ringan',
     'Besi Beton',
-    'Kayu Kamper',
-    'Keramik 40x40',
     'Keramik 60x60',
     'Cat Interior',
-    'Cat Eksterior',
-    'Plafon Gypsum',
-    'Genteng Metal',
-    'Genteng Tanah Liat'
+    'Plafon Gypsum'
 ];
 
-$lokasi_options = [
-    'Lantai 1',
-    'Lantai 2',
-    'Area Parkir',
-    'Area Landscape',
-    'Area MEP'
-];
-
-$metode_kerja_options = [
-    'Manual',
-    'Semi Mekanis',
-    'Mekanis',
-    'Precast',
-    'Konvensional'
-];
-
+$lokasi_options = ['Lantai 1','Lantai 2','Area Parkir','Area Landscape','Area MEP'];
+$metode_kerja_options = ['Manual','Semi Mekanis','Mekanis','Precast','Konvensional'];
 $satuan_options = ['m²','m³','unit','kg','ton','meter','liter'];
-
 
 /* ====== PROSES SUBMIT ====== */
 if (isset($_POST['submit'])) {
 
     $id = $_SESSION['id'];
 
-    $jenis = mysqli_real_escape_string($conn, $_POST['jenis']);
+    $jenis = mysqli_real_escape_string($koneksi, $_POST['jenis']);
     $volume_angka = $_POST['volume'];
     $satuan = $_POST['satuan'];
-    $material = mysqli_real_escape_string($conn, $_POST['material']);
-    $lokasi = mysqli_real_escape_string($conn, $_POST['lokasi']);
-    $metode = mysqli_real_escape_string($conn, $_POST['metode']);
+    $material = mysqli_real_escape_string($koneksi, $_POST['material']);
+    $lokasi = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
+    $metode = mysqli_real_escape_string($koneksi, $_POST['metode']);
     $mulai = $_POST['mulai'];
     $selesai = $_POST['selesai'];
-    $catatan = mysqli_real_escape_string($conn, $_POST['catatan']);
 
     /* VALIDASI */
     if (
@@ -95,15 +81,14 @@ if (isset($_POST['submit'])) {
         $volume = $volume_angka . " " . $satuan;
 
         $query = "INSERT INTO form_izin_pekerjaan
-        (kontraktor_id, jenis_pekerjaan, volume, material, lokasi, metode_kerja, tanggal_mulai, tanggal_selesai, catatan, status)
+        (kontraktor_id, jenis_pekerjaan, volume, material, lokasi, metode_kerja, tanggal_mulai, tanggal_selesai, status)
         VALUES
-        ('$id','$jenis','$volume','$material','$lokasi','$metode','$mulai','$selesai','$catatan','Menunggu Review Pengawas')";
+        ('$id','$jenis','$volume','$material','$lokasi','$metode','$mulai','$selesai','Menunggu Review Pengawas')";
 
-        if (mysqli_query($conn, $query)) {
+        if (mysqli_query($koneksi, $query)) {
             $notifikasi = "✅ Izin pekerjaan berhasil dikirim.";
-            $_POST = [];
         } else {
-            $notifikasi = "❌ Error Database: " . mysqli_error($conn);
+            $notifikasi = "❌ Error Database: " . mysqli_error($koneksi);
         }
     }
 }
@@ -126,18 +111,17 @@ if (isset($_POST['submit'])) {
     <select name="jenis" required>
         <option value="">-- Pilih --</option>
         <?php foreach ($jenis_pekerjaan_options as $j): ?>
-            <option value="<?php echo $j; ?>"><?php echo $j; ?></option>
+            <option value="<?= $j ?>"><?= $j ?></option>
         <?php endforeach; ?>
     </select>
     <br><br>
 
     <label>Volume</label><br>
     <input type="number" name="volume" step="0.01" required>
-
     <select name="satuan" required>
         <option value="">-- Satuan --</option>
         <?php foreach ($satuan_options as $s): ?>
-            <option value="<?php echo $s; ?>"><?php echo $s; ?></option>
+            <option value="<?= $s ?>"><?= $s ?></option>
         <?php endforeach; ?>
     </select>
     <br><br>
@@ -146,7 +130,7 @@ if (isset($_POST['submit'])) {
     <select name="material" required>
         <option value="">-- Pilih --</option>
         <?php foreach ($material_options as $m): ?>
-            <option value="<?php echo $m; ?>"><?php echo $m; ?></option>
+            <option value="<?= $m ?>"><?= $m ?></option>
         <?php endforeach; ?>
     </select>
     <br><br>
@@ -155,7 +139,7 @@ if (isset($_POST['submit'])) {
     <select name="lokasi" required>
         <option value="">-- Pilih --</option>
         <?php foreach ($lokasi_options as $l): ?>
-            <option value="<?php echo $l; ?>"><?php echo $l; ?></option>
+            <option value="<?= $l ?>"><?= $l ?></option>
         <?php endforeach; ?>
     </select>
     <br><br>
@@ -164,7 +148,7 @@ if (isset($_POST['submit'])) {
     <select name="metode" required>
         <option value="">-- Pilih --</option>
         <?php foreach ($metode_kerja_options as $mk): ?>
-            <option value="<?php echo $mk; ?>"><?php echo $mk; ?></option>
+            <option value="<?= $mk ?>"><?= $mk ?></option>
         <?php endforeach; ?>
     </select>
     <br><br>
@@ -175,10 +159,6 @@ if (isset($_POST['submit'])) {
 
     <label>Tanggal Selesai</label><br>
     <input type="date" name="selesai" required>
-    <br><br>
-
-    <label>Catatan</label><br>
-    <textarea name="catatan"></textarea>
     <br><br>
 
     <button type="submit" name="submit">Kirim</button>
