@@ -34,7 +34,7 @@ if ($_SESSION['role'] != "kontraktor") {
         <nav>
             <a href="#">Dashboard</a>
             <a href="../kontraktor/AjukanIzin.php">Ajukan Izin</a>
-            <a href="../menu_Kontraktor/LihatStatus.php">Status Izin</a>
+            <a href="../kontraktor/LihatStatus.php">Status Izin</a>
             <a href="#">Riwayat</a>
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
