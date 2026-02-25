@@ -11,7 +11,7 @@ $data = mysqli_fetch_assoc($query);
 if ($data) {
     if ($password == $data['password']) {
 
-        $_SESSION['id'] = $data['id'];
+        $_SESSION['kontraktor_id'] = $data['id']; // Simpan ID kontraktor di session
         $_SESSION['username'] = $data['username'];
         $_SESSION['role'] = $data['role'];
 
