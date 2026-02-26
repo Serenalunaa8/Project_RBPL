@@ -134,7 +134,7 @@ $query = mysqli_query($koneksi, "SELECT * FROM laporan_harian WHERE $where");
     <div class="sidebar">
         <h2>Koordinator</h2>
         <a href="koordinator_pengawas.php">🏠 Dashboard</a>
-        <a href="koordinator_tinjau_laporan.php">📋 Tinjau Laporan</a>
+        <a href="koordinator_koordinator_pengawas.php">📋 Tinjau Laporan</a>
         <a href="koordinator_susun_laporan.php">📝 Susun Laporan</a>
         <a href="koordinator_riwayat_laporan.php">📁 Riwayat Laporan</a>
         <a href="../logout.php">🚪 Logout</a>
