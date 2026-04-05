@@ -222,10 +222,10 @@ $username = $_SESSION['username'] ?? 'Team Leader';
                 <span class="nav-icon">⊞</span> Dashboard
             </a>
             <a href="review_laporan_mingguan.php">
-                <span class="nav-icon">📋</span> Review Lap. Mingguan
+                <span class="nav-icon">📋</span> Review Laporan Mingguan
             </a>
             <a href="evaluasi_laporan_bulanan.php">
-                <span class="nav-icon">📊</span> Evaluasi Lap. Bulanan
+                <span class="nav-icon">📊</span> Evaluasi Laporan Bulanan
             </a>
             <a href="riwayat_laporan_bulanan.php">
                 <span class="nav-icon">🗂</span> Riwayat Evaluasi
