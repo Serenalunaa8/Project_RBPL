@@ -61,8 +61,6 @@ $username = $_SESSION['username'] ?? 'Team Leader';
             </div>
             <span class="role-badge">TEAM LEADER</span>
         </header>
-
-        <!-- STATS -->
         <section class="stats">
             <div class="stat-card">
                 <h3>6</h3>

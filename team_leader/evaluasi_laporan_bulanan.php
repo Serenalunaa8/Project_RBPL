@@ -17,7 +17,6 @@ $username = $_SESSION['username'] ?? 'Team Leader';
 <body>
 
 <div class="dashboard-container">
-
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="sidebar-brand">
