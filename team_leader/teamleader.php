@@ -2,19 +2,512 @@
 session_start();
 if ($_SESSION['role'] != "teamleader") {
     header("Location: ../login.php");
+    exit;
 }
+$username = $_SESSION['username'] ?? 'Team Leader';
 ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Team Leader | Cipta Manunggal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="asset/teamleader.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Dashboard-specific extras */
+        .grid-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
 
-<h2>Dashboard Team Leader</h2>
-<p>Selamat datang, <?php echo $_SESSION['username']; ?></p>
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+        }
 
-<hr>
+        .chart-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
 
-<h3>Menu Team Leader:</h3>
-<ul>
-    <li>Review Laporan Mingguan</li>
-    <li>Evaluasi Laporan Bulanan</li>
-    <li>Riwayat Evaluasi</li>
-</ul>
+        .activity-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+        }
 
-<a href="logout.php">Logout</a>
+        .activity-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .activity-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .activity-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .activity-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .dot-yellow { background: #ffc107; }
+        .dot-green  { background: #22c55e; }
+        .dot-purple { background: #818cf8; }
+        .dot-red    { background: #ef4444; }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        /* Laporan mingguan summary row */
+        .weekly-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .weekly-row:last-child { border-bottom: none; }
+
+        .weekly-row-left {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .weekly-row-left strong {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .weekly-row-left span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Progress bar */
+        .progress-wrap {
+            margin-top: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-bg {
+            background: rgba(255,255,255,0.06);
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: var(--accent);
+            transition: width 1s ease;
+        }
+
+        /* Quick action cards */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .quick-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 20px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .quick-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+        }
+
+        .quick-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--accent-dim);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .quick-card-text strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .quick-card-text span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 120 120" class="logo-arch">
+                <rect x="10" y="10" width="100" height="100"/>
+                <path d="M35 80 V40 H60"/>
+                <path d="M60 40 L75 60 L90 40 V80"/>
+            </svg>
+            <div class="brand-name">CIPTA<br><span>MANUNGGAL</span></div>
+        </div>
+
+        <nav>
+            <a href="teamleader.php" class="active">
+                <span class="nav-icon">⊞</span> Dashboard
+            </a>
+            <a href="review_laporan_mingguan.php">
+                <span class="nav-icon">📋</span> Review Lap. Mingguan
+            </a>
+            <a href="evaluasi_laporan_bulanan.php">
+                <span class="nav-icon">📊</span> Evaluasi Lap. Bulanan
+            </a>
+            <a href="riwayat_laporan_bulanan.php">
+                <span class="nav-icon">🗂</span> Riwayat Evaluasi
+            </a>
+        </nav>
+
+        <div class="logout-link">
+            <a href="../logout.php">
+                <span class="nav-icon">↩</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1>Halo, <?php echo htmlspecialchars($username); ?></h1>
+                <p>Pantau evaluasi laporan bulanan dan verifikasi progres proyek.</p>
+            </div>
+            <span class="role-badge">TEAM LEADER</span>
+        </header>
+
+        <!-- STATS -->
+        <section class="stats">
+            <div class="stat-card">
+                <h3>12</h3>
+                <p>Total Lap. Mingguan</p>
+            </div>
+            <div class="stat-card">
+                <h3>3</h3>
+                <p>Menunggu Review</p>
+            </div>
+            <div class="stat-card">
+                <h3>0</h3>
+                <p>Lap. Bulanan Pending</p>
+            </div>
+            <div class="stat-card">
+                <h3>6</h3>
+                <p>Evaluasi Selesai</p>
+            </div>
+        </section>
+
+        <!-- QUICK ACTIONS -->
+        <section class="quick-actions">
+            <a href="review_laporan_mingguan.php" class="quick-card">
+                <div class="quick-icon">📋</div>
+                <div class="quick-card-text">
+                    <strong>Review Mingguan</strong>
+                    <span>3 laporan menunggu</span>
+                </div>
+            </a>
+            <a href="evaluasi_laporan_bulanan.php" class="quick-card">
+                <div class="quick-icon">📊</div>
+                <div class="quick-card-text">
+                    <strong>Evaluasi Bulanan</strong>
+                    <span>Maret 2026 belum dievaluasi</span>
+                </div>
+            </a>
+            <a href="riwayat_laporan_bulanan.php" class="quick-card">
+                <div class="quick-icon">🗂</div>
+                <div class="quick-card-text">
+                    <strong>Riwayat Evaluasi</strong>
+                    <span>6 arsip tersedia</span>
+                </div>
+            </a>
+        </section>
+
+        <!-- CHART + ACTIVITY -->
+        <section class="grid-section">
+
+            <!-- Bar Chart: Evaluasi per bulan -->
+            <div class="chart-card">
+                <h3>Progres Evaluasi Laporan (6 Bulan Terakhir)</h3>
+                <canvas id="evalChart" height="110"></canvas>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-card">
+                <h3>Aktivitas Terbaru</h3>
+                <ul class="activity-list">
+                    <li>
+                        <span class="activity-dot dot-yellow"></span>
+                        <div>
+                            Lap. Mingguan Apr W1 menunggu review
+                            <div class="activity-time">02 Apr 2026 · Koordinator A</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="activity-dot dot-yellow"></span>
+                        <div>
+                            Lap. Mingguan Mar W4 menunggu review
+                            <div class="activity-time">29 Mar 2026 · Koordinator B</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="activity-dot dot-green"></span>
+                        <div>
+                            Evaluasi Februari 2026 disetujui
+                            <div class="activity-time">03 Mar 2026 · <?php echo htmlspecialchars($username); ?></div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="activity-dot dot-purple"></span>
+                        <div>
+                            Revisi diminta — Lap. Jan W2
+                            <div class="activity-time">10 Feb 2026 · <?php echo htmlspecialchars($username); ?></div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="activity-dot dot-green"></span>
+                        <div>
+                            Evaluasi Januari 2026 disetujui
+                            <div class="activity-time">04 Feb 2026 · <?php echo htmlspecialchars($username); ?></div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </section>
+
+        <!-- LAPORAN MINGGUAN TERBARU + PROGRES PROYEK -->
+        <section class="grid-section">
+
+            <!-- Laporan Mingguan Terbaru -->
+            <div class="chart-card">
+                <h3>Laporan Mingguan Terbaru</h3>
+
+                <div class="weekly-row">
+                    <div class="weekly-row-left">
+                        <strong>Minggu ke-1 April 2026</strong>
+                        <span>Koordinator A · Pengecoran kolom Lt.3</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="badge badge-pending">Menunggu</span>
+                        <a href="review_laporan_mingguan.php" class="btn btn-primary btn-sm">Tinjau</a>
+                    </div>
+                </div>
+
+                <div class="weekly-row">
+                    <div class="weekly-row-left">
+                        <strong>Minggu ke-4 Maret 2026</strong>
+                        <span>Koordinator B · Pemasangan bekisting</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="badge badge-pending">Menunggu</span>
+                        <a href="review_laporan_mingguan.php" class="btn btn-primary btn-sm">Tinjau</a>
+                    </div>
+                </div>
+
+                <div class="weekly-row">
+                    <div class="weekly-row-left">
+                        <strong>Minggu ke-3 Maret 2026</strong>
+                        <span>Koordinator A · Penulangan plat lantai</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="badge badge-approved">Ditinjau</span>
+                        <a href="review_laporan_mingguan.php" class="btn btn-secondary btn-sm">Detail</a>
+                    </div>
+                </div>
+
+                <div class="weekly-row">
+                    <div class="weekly-row-left">
+                        <strong>Minggu ke-2 Maret 2026</strong>
+                        <span>Koordinator B · Erection kolom balok</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="badge badge-revision">Perlu Revisi</span>
+                        <a href="review_laporan_mingguan.php" class="btn btn-secondary btn-sm">Detail</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Progres Proyek -->
+            <div class="activity-card">
+                <h3>Progres Proyek</h3>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>Struktur Lt. 1</span>
+                        <span style="color:var(--accent);">100%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:100%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>Struktur Lt. 2</span>
+                        <span style="color:var(--accent);">85%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:85%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>Struktur Lt. 3</span>
+                        <span style="color:var(--accent);">40%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:40%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>Finishing & MEP</span>
+                        <span style="color:#555;">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:0%;background:#333;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border);">
+                    <div class="progress-label" style="margin-bottom:8px;">
+                        <span style="font-weight:600; color:var(--text-primary);">Total Progres</span>
+                        <span style="color:var(--accent); font-weight:700; font-size:16px;">56%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height:8px;">
+                        <div class="progress-bar-fill" style="width:56%;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+</div>
+
+<script>
+const ctx = document.getElementById('evalChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Nov 25', 'Des 25', 'Jan 26', 'Feb 26', 'Mar 26', 'Apr 26'],
+        datasets: [
+            {
+                label: 'Lap. Mingguan',
+                data: [4, 5, 4, 4, 4, 1],
+                backgroundColor: 'rgba(255,193,7,0.25)',
+                borderColor: '#ffc107',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            },
+            {
+                label: 'Disetujui',
+                data: [4, 5, 4, 4, 0, 0],
+                backgroundColor: 'rgba(34,197,94,0.25)',
+                borderColor: '#22c55e',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: '#888', font: { size: 12 } }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#666' },
+                grid: { color: 'rgba(255,255,255,0.04)' }
+            },
+            y: {
+                ticks: { color: '#666', stepSize: 1 },
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
