@@ -79,7 +79,7 @@
             <h3>Corporate Login</h3>
             <p>Masuk ke sistem monitoring proyek</p>
 
-            <!-- 🔥 NOTIFIKASI ERROR -->
+            <!--NOTIFIKASI ERROR -->
             <?php session_start(); ?>
             <?php if(isset($_SESSION['error'])): ?>
                 <div class="error-msg">
