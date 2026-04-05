@@ -8,12 +8,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'kontraktor') {
     exit();
 }
 
-/* Pastikan kontraktor_id ada */
-if (!isset($_SESSION['kontraktor_id'])) {
+if (!isset($_SESSION['id'])) {
     die("Session kontraktor tidak ditemukan. Silakan login ulang.");
 }
 
-$kontraktor_id = $_SESSION['kontraktor_id'];
+$kontraktor_id = $_SESSION['id'];
 
 /* ================== PROSES FORM ================== */
 if ($_SERVER["REQUEST_METHOD"] == "POST") {

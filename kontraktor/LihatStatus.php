@@ -7,15 +7,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "kontraktor") {
 
 require_once '../koneksi.php'; 
 
-if (!isset($_SESSION['kontraktor_id'])) {
+if (!isset($_SESSION['id'])) {
     die("Session kontraktor tidak ditemukan. Silakan login ulang.");
 }
 
-$kontraktor_id = $_SESSION['kontraktor_id']; 
+$kontraktor_id = $_SESSION['id']; 
 
 // Ambil semua pengajuan izin milik kontraktor ini menggunakan MySQLi
 $query = "SELECT * FROM form_izin_pekerjaan 
-          WHERE kontraktor_id = ? 
+          WHERE id = ? 
           ORDER BY created_at DESC";
 
 $stmt = mysqli_prepare($koneksi, $query);
