@@ -2,24 +2,13 @@
 <aside class="sidebar">
   <div class="brand">
     <div class="brand-inner">
-      <svg class="logo-svg" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="22" cy="22" r="21" stroke="#ffc107" stroke-width="0.6" stroke-opacity="0.3"/>
-        <rect x="9" y="17" width="20" height="20" rx="1.5" fill="#1f1f1f" stroke="#ffc107" stroke-width="0.8" stroke-opacity="0.5"/>
-        <polygon points="19,7 8,17 30,17" fill="#ffc107" opacity="0.85"/>
-        <line x1="19" y1="2" x2="19" y2="8" stroke="#ffc107" stroke-width="1.6" stroke-linecap="round"/>
-        <circle cx="19" cy="1.5" r="1.5" fill="#ffc107" opacity="0.8"/>
-        <rect x="12" y="20" width="4" height="4" rx="0.8" fill="#ffc107" opacity="0.9"/>
-        <rect x="18" y="20" width="4" height="4" rx="0.8" fill="#ffc107" opacity="0.4"/>
-        <rect x="24" y="20" width="4" height="4" rx="0.8" fill="#ffc107" opacity="0.8"/>
-        <rect x="12" y="27" width="4" height="4" rx="0.8" fill="#ffc107" opacity="0.5"/>
-        <rect x="18" y="27" width="4" height="4" rx="0.8" fill="#ffc107" opacity="1"/>
-        <rect x="24" y="27" width="4" height="4" rx="0.8" fill="#ffc107" opacity="0.6"/>
-        <rect x="15" y="32" width="7" height="5" rx="1" fill="#ffc107" opacity="0.65"/>
-        <circle cx="35" cy="12" r="5" fill="none" stroke="#ffc107" stroke-width="0.7" stroke-opacity="0.5"/>
-        <circle cx="35" cy="12" r="2" fill="#ffc107" opacity="0.25"/>
+      <svg class="logo-svg logo-arch" width="38" height="38" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="100" height="100" stroke="#ffc107" stroke-width="3" fill="none"/>
+        <path d="M35 80 V40 H60" stroke="#ffc107" stroke-width="4" fill="none"/>
+        <path d="M60 40 L75 60 L90 40 V80" stroke="#ffc107" stroke-width="4" fill="none"/>
       </svg>
       <div class="brand-text">
-        <h1>Sistem <span>Pengawasan</span></h1>
+        <h1>CIPTA<span>MANUNGGAL</span></h1>
         <p>Koordinator</p>
       </div>
     </div>
