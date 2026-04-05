@@ -19,19 +19,15 @@ if ($data) {
         if ($data['role'] == "kontraktor") {
             header("Location: kontraktor/dashboard.php");
         } elseif ($data['role'] == "pengawas") {
-            header("Location: dashboard/pengawas_lapangan.php");
+            header("Location: pengawas_lapangan/pengawas_lapangan.php");
         } elseif ($data['role'] == "koordinator") {
-            header("Location: dashboard/koordinator_pengawas.php");
+            header("Location: koordinator_pengawas/koordinator_pengawas.php");
         } elseif ($data['role'] == "teamleader") {
-            header("Location: dashboard/teamleader.php");
-        } elseif ($data['role'] == "admin") {
-            header("Location: dashboard/admin.php");
-        }
-
+            header("Location: team_leader/teamleader.php");
     } else {
         echo "Password salah!";
     }
 } else {
     echo "Username tidak ditemukan!";
-}
+}}
 ?>
