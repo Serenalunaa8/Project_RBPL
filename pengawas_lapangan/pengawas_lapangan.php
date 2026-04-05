@@ -38,8 +38,8 @@ $jumlah_antrean = $data_count['total'];
             <h2>CIPTA<span>MANUNGGAL</span></h2>
         </div>
         <nav>
-            <a href="pengawas_lapangan.php" class="active">Dashboard Utama</a>
-            <a href="verifikasi_Lapangan.php">Verifikasi Lapangan <?php if($jumlah_antrean > 0) echo "<span class='badge-notif'>$jumlah_antrean</span>"; ?></a>
+            <a href="pengawas_lapangan.php" class="active">Dashboard</a>
+            <a href="verifikasi_Lapangan.php">Verifikasi Izin Pekerjaan <?php if($jumlah_antrean > 0) echo "<span class='badge-notif'>$jumlah_antrean</span>"; ?></a>
             <a href="#">Laporan Harian</a>
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
@@ -51,7 +51,7 @@ $jumlah_antrean = $data_count['total'];
                 <h1>Halo, <?php echo $_SESSION['username']; ?></h1>
                 <p>Pantau progres dan verifikasi izin kerja hari ini.</p>
             </div>
-            <div class="role-badge">PENGAWAS PROYEK</div>
+            <div class="role-badge">PENGAWAS LAPANGAN</div>
         </header>
 
         <section class="stats">
