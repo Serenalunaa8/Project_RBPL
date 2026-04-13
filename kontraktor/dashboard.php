@@ -443,7 +443,7 @@ if (empty($chart_dates)) {
             <a href="./dashboard.php" class="active">Dashboard</a>
             <a href="./AjukanIzin.php">Ajukan Izin</a>
             <a href="./LihatStatus.php">Status Izin</a>
-            <a href="#">Riwayat</a>
+            <a href="./Riwayat.php">Riwayat</a>         
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
     </aside>
