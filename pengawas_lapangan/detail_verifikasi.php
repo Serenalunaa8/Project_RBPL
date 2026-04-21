@@ -612,7 +612,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
         <nav>
             <a href="pengawas_lapangan.php">Dashboard</a>
             <a href="verifikasi_lapangan.php" class="active">Verifikasi</a>
-            <a href="detail_verifikasi.php">Laporan</a>
+            <a href="laporan_verifikasi.php">Laporan</a>
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
     </aside>

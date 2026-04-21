@@ -377,7 +377,7 @@ td {
         <nav>
             <a href="pengawas_lapangan.php">Dashboard</a>
             <a href="verifikasi_lapangan.php">Verifikasi</a>
-            <a href="laporan_harian.php" class="active">Laporan Harian</a>
+            <a href="laporan_verifikasi.php" class="active">Laporan</a>
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
     </aside>
