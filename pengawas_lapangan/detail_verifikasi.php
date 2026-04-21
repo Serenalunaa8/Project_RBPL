@@ -24,30 +24,54 @@ $query = mysqli_query($koneksi, "
 ");
 
 $data = mysqli_fetch_assoc($query);
+$queryFoto = mysqli_query($koneksi, "
+SELECT * FROM laporan_harian 
+WHERE izin_id = $id
+ORDER BY tanggal DESC
+");
 
 if (!$data) {
     die("Data tidak ditemukan");
 }
 
-// Jika ada request approve/reject
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
     $action = $_POST['action'] ?? '';
-    $catatan = $_POST['catatan'] ?? '';
+    $catatan = mysqli_real_escape_string($koneksi, $_POST['catatan'] ?? '');
 
     if ($action == 'approve') {
-        $new_status = 'Disetujui';
+        $new_status = 'Disetujui Pengawas';
     } elseif ($action == 'reject') {
         $new_status = 'Ditolak';
+    } elseif ($action == 'revisi') {
+        $new_status = 'Revisi';
     } else {
         $new_status = null;
     }
 
     if ($new_status) {
-        $update_query = "UPDATE form_izin_pekerjaan SET status='$new_status', catatan='$catatan' WHERE id=$id";
-        if (mysqli_query($koneksi, $update_query)) {
-            header("Location: verifikasi_lapangan.php");
-            exit;
-        }
+
+        $new_status_escaped = mysqli_real_escape_string($koneksi, $new_status);
+
+        mysqli_query($koneksi, "
+            UPDATE form_izin_pekerjaan 
+            SET status='$new_status_escaped', catatan='$catatan'
+            WHERE id=$id
+        ");
+
+        $kontraktor_id = (int)$data['kontraktor_id'];
+        $jenis = mysqli_real_escape_string($koneksi, $data['jenis_pekerjaan']);
+
+        $pesan = "Status izin pekerjaan '$jenis' telah diperbarui menjadi '$new_status_escaped'.";
+        $pesan_escaped = mysqli_real_escape_string($koneksi, $pesan);
+
+        mysqli_query($koneksi, "
+    INSERT INTO notifikasi (user_id, pesan, form_id) 
+    VALUES ('$kontraktor_id', '$pesan_escaped', '$id')
+");
+
+        header("Location: verifikasi_lapangan.php");
+        exit;
     }
 }
 
@@ -390,6 +414,37 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
+        .status-revisi {
+                background: rgba(168, 85, 247, 0.2);
+                color: #a855f7;
+            }
+    
+            /* ── LAPORAN HARIAN ── */
+            .laporan-item {
+                background: #0f0f0f;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+    
+            .laporan-item p {
+                margin-bottom: 6px;
+            }
+    
+            .laporan-item img {
+                width: 220px;
+                border-radius: 8px;
+                margin-top: 10px;
+            }
+    
+            /* ── ERROR MESSAGE ── */
+            .error-message {
+                background: rgba(255, 68, 68, 0.1);
+                color: #ff4444;
+                padding: 10px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+            }
 
         /* ── FORM ── */
         .form-section {
@@ -451,6 +506,16 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
 
         .btn-reject:hover {
             background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-revise {
+            background: #f59e0b;
+            color: #fff;
+        }
+
+        .btn-revise:hover {
+            background: #d97706;
             transform: translateY(-2px);
         }
 
@@ -582,12 +647,12 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
                         $status_class = '';
                         if(strpos($status_lower, 'menunggu') !== false) {
                             $status_class = 'status-menunggu';
-                        } elseif(strpos($status_lower, 'verifikasi') !== false) {
-                            $status_class = 'status-verifikasi';
                         } elseif(strpos($status_lower, 'disetujui') !== false) {
                             $status_class = 'status-disetujui';
                         } elseif(strpos($status_lower, 'ditolak') !== false) {
                             $status_class = 'status-ditolak';
+                        } elseif(strpos($status_lower, 'revisi') !== false) {
+                            $status_class = 'status-revisi';
                         }
                         ?>
                         <span class="status-badge <?= $status_class ?>"><?= $data['status'] ?></span>
@@ -641,6 +706,11 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
             </div>
         </div>
 
+        <a href="tambah_laporan.php?id=<?= $data['id'] ?>" 
+   style="background:#22c55e;padding:10px;color:white;text-decoration:none;">
+   + Tambah Laporan
+</a>
+
         <!-- KONTRAKTOR INFO -->
         <div class="detail-card">
             <h2 class="section-title">Informasi Kontraktor</h2>
@@ -657,6 +727,12 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
         <div class="detail-card">
             <h2 class="section-title">Verifikasi Izin</h2>
             
+            <?php if (isset($error)): ?>
+                <div class="error-message" style="color: #ff4444; background: rgba(255,68,68,0.1); padding: 10px; border-radius: 6px; margin-bottom: 20px;">
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+            
             <form method="POST" class="form-section">
                 <div class="detail-field full-width">
                     <label>Catatan Verifikasi</label>
@@ -664,18 +740,62 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" name="action" value="approve" class="btn-action btn-approve">
-                        ✓ Setujui Izin
-                    </button>
-                    <button type="submit" name="action" value="reject" class="btn-action btn-reject">
-                        ✗ Tolak Izin
-                    </button>
-                </div>
+    <button type="submit" name="action" value="approve" class="btn-action btn-approve">
+        ✓ Setujui
+    </button>
+
+    <button type="submit" name="action" value="revisi" class="btn-action btn-revise" onclick="return validateRevise()">
+        ↺ Revisi
+    </button>
+
+    <button type="submit" name="action" value="reject" class="btn-action btn-reject">
+        ✗ Tolak
+    </button>
+</div>
             </form>
         </div>
 
     </main>
 </div>
+
+<div class="detail-card">
+    <h2 class="section-title">Laporan Harian</h2>
+
+    <?php if(mysqli_num_rows($queryFoto) > 0): ?>
+        
+        <?php while($f = mysqli_fetch_assoc($queryFoto)): ?>
+            
+            <div style="
+                margin-bottom:20px;
+                padding:15px;
+                background:#111;
+                border-radius:10px;
+            ">
+                <p><b>Tanggal:</b> <?= $f['tanggal'] ?></p>
+                <p><b>Progress:</b> <?= $f['progress_pekerjaan'] ?>%</p>
+                <p><b>Cuaca:</b> <?= $f['cuaca'] ?></p>
+
+                <img src="../upload/<?= $f['foto'] ?>" 
+                     style="width:220px; border-radius:8px; margin-top:10px;">
+            </div>
+
+        <?php endwhile; ?>
+
+    <?php else: ?>
+        <p style="color:#888;">Belum ada laporan harian</p>
+    <?php endif; ?>
+</div>
+
+<script>
+function validateRevise() {
+    const catatan = document.querySelector('textarea[name="catatan"]').value.trim();
+    if (!catatan) {
+        alert('Catatan teknis wajib diisi untuk permintaan revisi.');
+        return false;
+    }
+    return true;
+}
+</script>
 
 </body>
 </html>

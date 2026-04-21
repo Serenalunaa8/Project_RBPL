@@ -305,6 +305,10 @@ $verifikasi = $stats['verifikasi'] ?? 0;
             background: rgba(239, 68, 68, 0.2); 
             color: #ef4444;
         }
+        .status.revisi { 
+         background: rgba(168, 85, 247, 0.2); 
+         color: #a855f7;
+        }
 
         /* ── NOTIF ── */
         .notif {
@@ -504,15 +508,16 @@ $verifikasi = $stats['verifikasi'] ?? 0;
                         $status_lower = strtolower($d['status']);
                         $status_class = '';
                         
-                        if(strpos($status_lower, 'menunggu') !== false) {
-                            $status_class = 'menunggu';
-                        } elseif(strpos($status_lower, 'verifikasi') !== false) {
-                            $status_class = 'verifikasi';
-                        } elseif(strpos($status_lower, 'disetujui') !== false) {
-                            $status_class = 'disetujui';
-                        } elseif(strpos($status_lower, 'ditolak') !== false) {
-                            $status_class = 'ditolak';
-                        }
+                       
+if(strpos($status_lower, 'menunggu') !== false) {
+    $status_class = 'menunggu';
+} elseif(strpos($status_lower, 'disetujui') !== false) {
+    $status_class = 'disetujui';
+} elseif(strpos($status_lower, 'ditolak') !== false) {
+    $status_class = 'ditolak';
+} elseif(strpos($status_lower, 'revisi') !== false) {
+    $status_class = 'revisi';
+}
                 ?>
 
                 <div class="izin-card">
