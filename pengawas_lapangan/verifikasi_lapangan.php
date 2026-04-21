@@ -665,6 +665,11 @@ function getStatusClass($status) {
                                             <a href="detail_verifikasi.php?id=<?php echo $row['id']; ?>" class="btn-tinjau">
                                                 Tinjau
                                             </a>
+                                            <?php if($row['status'] == 'Disetujui Pengawas' || $row['status'] == 'Dalam Verifikasi'): ?>
+                                                <a href="laporan_verifikasi.php?id=<?php echo $row['id']; ?>" class="btn-laporan" style="margin-left: 8px; background: #22c55e; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px;">
+                                                    Laporan
+                                                </a>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>

@@ -26,7 +26,7 @@ $query = mysqli_query($koneksi, "
 $data = mysqli_fetch_assoc($query);
 $queryFoto = mysqli_query($koneksi, "
 SELECT * FROM laporan_harian 
-WHERE izin_id = $id
+WHERE id = $id
 ORDER BY tanggal DESC
 ");
 
@@ -706,7 +706,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
             </div>
         </div>
 
-        <a href="tambah_laporan.php?id=<?= $data['id'] ?>" 
+        <a href="laporan_harian.php?id=<?= $data['id'] ?>" 
    style="background:#22c55e;padding:10px;color:white;text-decoration:none;">
    + Tambah Laporan
 </a>
@@ -772,7 +772,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
                 border-radius:10px;
             ">
                 <p><b>Tanggal:</b> <?= $f['tanggal'] ?></p>
-                <p><b>Progress:</b> <?= $f['progress_pekerjaan'] ?>%</p>
+                <p><b>Progress:</b> <?= $f['progres'] ?>%</p>
                 <p><b>Cuaca:</b> <?= $f['cuaca'] ?></p>
 
                 <img src="../upload/<?= $f['foto'] ?>" 
