@@ -570,7 +570,7 @@ function getStatusClass($status) {
                     <span class="badge-notif"><?php echo $jumlah_antrean; ?></span>
                 <?php endif; ?>
             </a>
-            <a href="laporan_verifikasi.php">Laporan</a>
+            <a href="laporan_verifikasi.php">Laporan Harian</a>
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
     </aside>

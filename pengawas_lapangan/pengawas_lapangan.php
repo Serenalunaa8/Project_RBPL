@@ -441,7 +441,7 @@ $verifikasi = $stats['verifikasi'] ?? 0;
         <nav>
             <a href="pengawas_lapangan.php" class="active">Dashboard</a>
             <a href="verifikasi_lapangan.php">Verifikasi</a>
-            <a href="laporan_verifikasi.php">Laporan</a>
+            <a href="laporan_verifikasi.php">Laporan Harian</a>
             <a href="../logout.php" class="logout">Logout</a>
         </nav>
     </aside>
