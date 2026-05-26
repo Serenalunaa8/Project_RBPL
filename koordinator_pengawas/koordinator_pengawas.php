@@ -23,9 +23,9 @@ $menunggu = $stats['menunggu'] ?? 0;
 $tervalidasi = $stats['tervalidasi'] ?? 0;
 
 // Ambil laporan harian terbaru
-$laporan_query = "SELECT lh.*, p.username as pengawas_nama
+$laporan_query = "SELECT lh.*, p.username as kontraktor_nama
 FROM laporan_harian lh
-LEFT JOIN users p ON lh.pengawas_id = p.id
+LEFT JOIN users p ON lh.kontraktor_id = p.id
 ORDER BY lh.tanggal DESC
 LIMIT 10";
 
@@ -33,191 +33,154 @@ $laporan_result = mysqli_query($koneksi, $laporan_query);
 $laporan_data = mysqli_fetch_all($laporan_result, MYSQLI_ASSOC);
 ?>
 
+<?php
+/**
+ * koordinator_pengawas.php — Dashboard Koordinator Pengawas
+ * Sistem Pengawasan Proyek — Koordinator
+ */
+$active_page = 'dashboard';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Koordinator Pengawas | CV Cipta Manunggal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <link rel="stylesheet" href="asset/koordinator.css">
+</head>
+<body>
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #111111;
-            color: #ffffff;
-        }
+<?php include 'sidebar.php'; ?>
 
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
+<main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <h2>Dashboard</h2>
+        <div class="topbar-right">
+            <div class="date-chip" id="date-chip"></div>
+            <a href="Tinjau_laporan_harian.php" class="notif-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="1.5">
+                    <path d="M8 1a5 5 0 015 5v3l1 2H2l1-2V6a5 5 0 015-5z"/>
+                    <path d="M6.5 13.5a1.5 1.5 0 003 0"/>
+                </svg>
+                <div class="notif-dot"></div>
+            </a>
+        </div>
+    </div>
 
-        /* ── SIDEBAR ── */
-        .sidebar {
-            width: 260px;
-            background: #1a1a1a;
-            padding: 30px 20px;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
+    <!-- SECTION HEADER -->
+    <div class="section-header fade-up">
+        <div>
+            <div class="section-title">Ringkasan Aktivitas</div>
+            <div class="section-sub">Pantau laporan harian dan verifikasi progres pekerjaan</div>
+        </div>
+    </div>
 
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 40px;
-        }
+    <!-- STATS -->
+    <div class="stats-grid fade-up" style="animation-delay:.04s">
+        <div class="stat-card">
+            <div class="stat-label">Total Laporan</div>
+            <div class="stat-val"><?= $total_laporan ?></div>
+            <div class="stat-sub">Laporan harian</div>
+            <div class="stat-icon">📊</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Menunggu Verifikasi</div>
+            <div class="stat-val" style="color: #f59e0b;"><?= $menunggu ?></div>
+            <div class="stat-sub">Perlu tinjauan</div>
+            <div class="stat-icon">⏳</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Tervalidasi</div>
+            <div class="stat-val" style="color: #22c55e;"><?= $tervalidasi ?></div>
+            <div class="stat-sub">Sudah diverifikasi</div>
+            <div class="stat-icon">✅</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Persentase</div>
+            <div class="stat-val" style="color: #38bdf8;">
+                <?= $total_laporan > 0 ? round(($tervalidasi / $total_laporan) * 100) : 0 ?>%
+            </div>
+            <div class="stat-sub">Tervalidasi</div>
+            <div class="stat-icon">📈</div>
+        </div>
+    </div>
 
-        .logo-arch {
-            width: 38px;
-            height: 38px;
-            stroke: #ffc107;
-            stroke-width: 4;
-            fill: none;
-        }
+    <!-- ACTIVITY CARD -->
+    <div class="panel fade-up" style="animation-delay:.08s">
+        <div class="panel-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="8" cy="8" r="6"/>
+                <path d="M8 5v3.5l2 1.5"/>
+            </svg>
+            Laporan Harian Terbaru
+        </div>
 
-        .sidebar h2 {
-            font-size: 16px;
-        }
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Kontraktor</th>
+                        <th>Progres Pekerjaan</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (mysqli_num_rows($laporan_result) > 0): ?>
+                        <?php foreach ($laporan_data as $row): 
+                            $status_class = (strtolower($row['status']) === 'menunggu') ? 'badge-wait' : 'badge-done';
+                        ?>
+                        <tr>
+                            <td><?= date('d M Y', strtotime($row['tanggal'])) ?></td>
+                            <td><?= htmlspecialchars($row['kontraktor_nama'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($row['progres'] ?? '-') ?></td>
+                            <td>
+                                <span class="badge <?= $status_class ?>">
+                                    <?= htmlspecialchars($row['status']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="Tinjau_laporan_harian.php?id=<?= $row['id'] ?>" class="btn btn-outline btn-sm">
+                                    Tinjau
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--muted); padding: 40px;">
+                                Belum ada laporan harian
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
 
-        .sidebar span {
-            color: #ffc107;
-        }
+<script>
+// Update date chip
+function updateDateChip() {
+    const now = new Date();
+    const options = { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    document.getElementById('date-chip').textContent = now.toLocaleDateString('id-ID', options);
+}
+updateDateChip();
+setInterval(updateDateChip, 60000); // Update every minute
+</script>
 
-        .sidebar nav {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .sidebar nav a {
-            text-decoration: none;
-            color: #cccccc;
-            padding: 10px;
-            border-radius: 6px;
-            transition: 0.3s;
-            font-size: 14px;
-        }
-
-        .sidebar nav a:hover,
-        .sidebar nav a.active {
-            background: #ffc107;
-            color: #111;
-        }
-
-        .logout {
-            margin-top: 30px;
-            background: #2a2a2a;
-        }
-
-        /* ── MAIN ── */
-        .main-content {
-            flex: 1;
-            padding: 50px;
-            overflow-y: auto;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .topbar h1 {
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .topbar p {
-            font-size: 14px;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        .role-badge {
-            background: #ffc107;
-            color: #111;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        /* ── STATS ── */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: #1c1c1c;
-            padding: 28px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #ffc107, #ffb300);
-        }
-
-        .stat-card:hover {
-            border-color: #ffc107;
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(255, 193, 7, 0.15);
-        }
-
-        .stat-card.warning::before {
-            background: linear-gradient(90deg, #ff9800, #ff7500);
-        }
-
-        .stat-card.success::before {
-            background: linear-gradient(90deg, #22c55e, #16a34a);
-        }
-
-        .stat-card h3 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .stat-card h3 {
-            color: #ffc107;
-        }
-
-        .stat-card.warning h3 {
-            color: #ff9800;
-        }
-
-        .stat-card.success h3 {
-            color: #22c55e;
-        }
-
-        .stat-card p {
-            font-size: 13px;
-            color: #888;
+</body>
+</html>
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -411,113 +374,23 @@ $laporan_data = mysqli_fetch_all($laporan_result, MYSQLI_ASSOC);
             th, td {
                 padding: 10px;
             }
-        }
-    </style>
-</head>
-<body>
-
-<div class="dashboard-container">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 120 120" class="logo-arch">
-                <rect x="10" y="10" width="100" height="100"/>
-                <path d="M35 80 V40 H60"/>
-                <path d="M60 40 L75 60 L90 40 V80"/>
-            </svg>
-            <h2>CIPTA<span>MANUNGGAL</span></h2>
-        </div>
-
-        <nav>
-            <a href="koordinator_pengawas.php" class="active">Dashboard</a>
-            <a href="Tinjau_laporan_harian.php">Tinjau Laporan Harian</a>
-            <a href="susun_laporan_mingguan.php">Susun Laporan Mingguan</a>
-            <a href="riwayat_laporan_mingguan.php">Riwayat Laporan</a>
-            <a href="../logout.php" class="logout">Logout</a>
-        </nav>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main-content">
-
-        <!-- TOPBAR -->
-        <header class="topbar">
-            <div>
-                <h1>Dashboard Koordinator</h1>
-                <p>Pantau laporan harian dan verifikasi progres pekerjaan</p>
-            </div>
-            <div class="role-badge">KOORDINATOR PENGAWAS</div>
-        </header>
-
-        <!-- STATS -->
-        <section class="stats">
-            <div class="stat-card">
-                <h3><?= $total_laporan ?></h3>
-                <p>Total Laporan Harian</p>
-            </div>
-            <div class="stat-card warning">
-                <h3><?= $menunggu ?></h3>
-                <p>Menunggu Pengesahan</p>
-            </div>
-            <div class="stat-card success">
-                <h3><?= $tervalidasi ?></h3>
-                <p>Tervalidasi</p>
-            </div>
-        </section>
-
-        <!-- TABLE -->
-        <section class="grid-section">
-            <div class="activity-card">
-                <h3>Laporan Harian Terbaru</h3>
-
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Pengawas Lapangan</th>
-                                <th>Progres Pekerjaan</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (mysqli_num_rows($laporan_result) > 0): ?>
-                                <?php foreach ($laporan_data as $row): 
-                                    $status_class = (strtolower($row['status']) === 'menunggu') ? 'badge-menunggu' : 'badge-tervalidasi';
-                                ?>
-                                <tr>
-                                    <td><?= date('d M Y', strtotime($row['tanggal'])) ?></td>
-                                    <td><?= htmlspecialchars($row['pengawas_nama'] ?? '-') ?></td>
-                                    <td><?= htmlspecialchars($row['progres_pekerjaan'] ?? '-') ?></td>
-                                    <td>
-                                        <span class="badge <?= $status_class ?>">
-                                            <?= htmlspecialchars($row['status']) ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="Tinjau_laporan_harian.php?id=<?= $row['id'] ?>" class="btn-tinjau">
-                                            Tinjau
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="5" class="empty-state">
-                                        <strong>Belum ada laporan harian</strong>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-</div>
+<script>
+// Update date chip
+function updateDateChip() {
+    const now = new Date();
+    const options = { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    document.getElementById('date-chip').textContent = now.toLocaleDateString('id-ID', options);
+}
+updateDateChip();
+setInterval(updateDateChip, 60000); // Update every minute
+</script>
 
 </body>
 </html>

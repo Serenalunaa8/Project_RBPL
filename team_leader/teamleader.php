@@ -1,10 +1,21 @@
 <?php
 session_start();
-if ($_SESSION['role'] != "teamleader") {
+if (!isset($_SESSION['role']) || $_SESSION['role'] != "teamleader") {
     header("Location: ../login.php");
     exit;
 }
-$username = $_SESSION['username'] ?? 'Team Leader';
+
+include "../koneksi.php";
+$username = $_SESSION['username'];
+$user_id = $_SESSION['id'];
+
+// Ambil statistik dari tabel laporan_bulanan
+$stats = [
+    'total' => mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as cnt FROM laporan_bulanan"))['cnt'] ?? 0,
+    'belum_eval' => mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as cnt FROM laporan_bulanan WHERE status = 'Belum Dievaluasi'"))['cnt'] ?? 0,
+    'disetujui' => mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as cnt FROM laporan_bulanan WHERE status = 'Disetujui'"))['cnt'] ?? 0,
+    'revisi' => mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as cnt FROM laporan_bulanan WHERE status = 'Diminta Revisi'"))['cnt'] ?? 0
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -31,7 +42,7 @@ $username = $_SESSION['username'] ?? 'Team Leader';
         }
 
         .chart-card h3 {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 700;
             margin-bottom: 24px;
@@ -48,7 +59,7 @@ $username = $_SESSION['username'] ?? 'Team Leader';
         }
 
         .activity-card h3 {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 700;
             margin-bottom: 20px;
@@ -221,14 +232,11 @@ $username = $_SESSION['username'] ?? 'Team Leader';
             <a href="teamleader.php" class="active">
                 <span class="nav-icon">⊞</span> Dashboard
             </a>
-            <a href="review_laporan_mingguan.php">
-                <span class="nav-icon">📋</span> Review Laporan Mingguan
-            </a>
             <a href="evaluasi_laporan_bulanan.php">
-                <span class="nav-icon">📊</span> Evaluasi Laporan Bulanan
+                <span class="nav-icon">📊</span> Evaluasi Laporan
             </a>
             <a href="riwayat_laporan_bulanan.php">
-                <span class="nav-icon">🗂</span> Riwayat Evaluasi
+                <span class="nav-icon">🗂</span> Riwayat Laporan
             </a>
         </nav>
 
@@ -254,44 +262,44 @@ $username = $_SESSION['username'] ?? 'Team Leader';
         <!-- STATS -->
         <section class="stats">
             <div class="stat-card">
-                <h3>12</h3>
-                <p>Total Lap. Mingguan</p>
+                <h3><?php echo htmlspecialchars($stats['total']); ?></h3>
+                <p>Total Laporan Bulanan</p>
             </div>
             <div class="stat-card">
-                <h3>3</h3>
-                <p>Menunggu Review</p>
+                <h3><?php echo htmlspecialchars($stats['belum_eval']); ?></h3>
+                <p>Belum Dievaluasi</p>
             </div>
             <div class="stat-card">
-                <h3>0</h3>
-                <p>Lap. Bulanan Pending</p>
+                <h3><?php echo htmlspecialchars($stats['revisi']); ?></h3>
+                <p>Diminta Revisi</p>
             </div>
             <div class="stat-card">
-                <h3>6</h3>
-                <p>Evaluasi Selesai</p>
+                <h3><?php echo htmlspecialchars($stats['disetujui']); ?></h3>
+                <p>Disetujui</p>
             </div>
         </section>
 
         <!-- QUICK ACTIONS -->
         <section class="quick-actions">
-            <a href="review_laporan_mingguan.php" class="quick-card">
-                <div class="quick-icon">📋</div>
-                <div class="quick-card-text">
-                    <strong>Review Mingguan</strong>
-                    <span>3 laporan menunggu</span>
-                </div>
-            </a>
             <a href="evaluasi_laporan_bulanan.php" class="quick-card">
                 <div class="quick-icon">📊</div>
                 <div class="quick-card-text">
-                    <strong>Evaluasi Bulanan</strong>
-                    <span>Maret 2026 belum dievaluasi</span>
+                    <strong>Evaluasi Laporan</strong>
+                    <span>Lihat semua laporan bulanan</span>
                 </div>
             </a>
             <a href="riwayat_laporan_bulanan.php" class="quick-card">
                 <div class="quick-icon">🗂</div>
                 <div class="quick-card-text">
-                    <strong>Riwayat Evaluasi</strong>
-                    <span>6 arsip tersedia</span>
+                    <strong>Riwayat Arsip</strong>
+                    <span>Laporan yang sudah disetujui</span>
+                </div>
+            </a>
+            <a href="teamleader.php" class="quick-card">
+                <div class="quick-icon">📈</div>
+                <div class="quick-card-text">
+                    <strong>Status Terbaru</strong>
+                    <span>Ringkasan evaluasi bulanan</span>
                 </div>
             </a>
         </section>
@@ -312,14 +320,14 @@ $username = $_SESSION['username'] ?? 'Team Leader';
                     <li>
                         <span class="activity-dot dot-yellow"></span>
                         <div>
-                            Lap. Mingguan Apr W1 menunggu review
+                            Lap. Bulanan April 2026 menunggu evaluasi
                             <div class="activity-time">02 Apr 2026 · Koordinator A</div>
                         </div>
                     </li>
                     <li>
                         <span class="activity-dot dot-yellow"></span>
                         <div>
-                            Lap. Mingguan Mar W4 menunggu review
+                            Lap. Bulanan Maret 2026 menunggu evaluasi
                             <div class="activity-time">29 Mar 2026 · Koordinator B</div>
                         </div>
                     </li>
@@ -349,54 +357,43 @@ $username = $_SESSION['username'] ?? 'Team Leader';
 
         </section>
 
-        <!-- LAPORAN MINGGUAN TERBARU + PROGRES PROYEK -->
+        <!-- LAPORAN BULANAN TERBARU + PROGRES PROYEK -->
         <section class="grid-section">
 
-            <!-- Laporan Mingguan Terbaru -->
+            <!-- Laporan Bulanan Terbaru -->
             <div class="chart-card">
-                <h3>Laporan Mingguan Terbaru</h3>
+                <h3>Laporan Bulanan Terbaru</h3>
 
                 <div class="weekly-row">
                     <div class="weekly-row-left">
-                        <strong>Minggu ke-1 April 2026</strong>
-                        <span>Koordinator A · Pengecoran kolom Lt.3</span>
+                        <strong>April 2026</strong>
+                        <span>Evaluasi struktur dan kualitas finishing</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-pending">Menunggu</span>
-                        <a href="review_laporan_mingguan.php" class="btn btn-primary btn-sm">Tinjau</a>
+                        <span class="badge badge-pending">Belum Dievaluasi</span>
+                        <a href="evaluasi_laporan_bulanan.php" class="btn btn-primary btn-sm">Evaluasi</a>
                     </div>
                 </div>
 
                 <div class="weekly-row">
                     <div class="weekly-row-left">
-                        <strong>Minggu ke-4 Maret 2026</strong>
-                        <span>Koordinator B · Pemasangan bekisting</span>
+                        <strong>Maret 2026</strong>
+                        <span>Progress jalan akses dan instalasi MEP</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-pending">Menunggu</span>
-                        <a href="review_laporan_mingguan.php" class="btn btn-primary btn-sm">Tinjau</a>
+                        <span class="badge badge-approved">Disetujui</span>
+                        <a href="riwayat_laporan_bulanan.php" class="btn btn-secondary btn-sm">Arsip</a>
                     </div>
                 </div>
 
                 <div class="weekly-row">
                     <div class="weekly-row-left">
-                        <strong>Minggu ke-3 Maret 2026</strong>
-                        <span>Koordinator A · Penulangan plat lantai</span>
+                        <strong>Februari 2026</strong>
+                        <span>Pelaksanaan beton lantai dan pengecatan</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-approved">Ditinjau</span>
-                        <a href="review_laporan_mingguan.php" class="btn btn-secondary btn-sm">Detail</a>
-                    </div>
-                </div>
-
-                <div class="weekly-row">
-                    <div class="weekly-row-left">
-                        <strong>Minggu ke-2 Maret 2026</strong>
-                        <span>Koordinator B · Erection kolom balok</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-revision">Perlu Revisi</span>
-                        <a href="review_laporan_mingguan.php" class="btn btn-secondary btn-sm">Detail</a>
+                        <span class="badge badge-revision">Diminta Revisi</span>
+                        <a href="evaluasi_laporan_bulanan.php" class="btn btn-secondary btn-sm">Periksa</a>
                     </div>
                 </div>
 
@@ -470,7 +467,7 @@ new Chart(ctx, {
         labels: ['Nov 25', 'Des 25', 'Jan 26', 'Feb 26', 'Mar 26', 'Apr 26'],
         datasets: [
             {
-                label: 'Lap. Mingguan',
+                label: 'Lap. Bulanan',
                 data: [4, 5, 4, 4, 4, 1],
                 backgroundColor: 'rgba(255,193,7,0.25)',
                 borderColor: '#ffc107',
