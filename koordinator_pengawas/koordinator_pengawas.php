@@ -1,6 +1,9 @@
 <?php
 session_start();
-include "../koneksi.php";
+require_once "../koneksi.php";
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi gagal: file koneksi tidak ditemukan atau koneksi database bermasalah.");
+}
 
 // Proteksi Role
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "koordinator") {

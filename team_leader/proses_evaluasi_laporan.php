@@ -5,7 +5,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== "teamleader") {
     exit;
 }
 
-include "../koneksi.php";
+require_once "../koneksi.php";
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi gagal: file koneksi tidak ditemukan atau koneksi database bermasalah.");
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: evaluasi_laporan_bulanan.php");
