@@ -1,6 +1,11 @@
 <?php
 session_start();
-include "../koneksi.php";
+$koneksi = null;
+require_once "../koneksi.php";
+
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
+}
 
 if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
     http_response_code(400);
@@ -12,9 +17,13 @@ $user_id = (int) $_SESSION['id'];
 
 // Ambil notifikasi dulu
 $stmt = mysqli_prepare($koneksi, "SELECT * FROM notifikasi WHERE id = ? AND user_id = ?");
+if (!$stmt) {
+    die('Query notifikasi gagal: ' . mysqli_error($koneksi));
+}
 mysqli_stmt_bind_param($stmt, "ii", $id, $user_id);
 mysqli_stmt_execute($stmt);
 $notif = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+mysqli_stmt_close($stmt);
 
 if (!$notif) {
     http_response_code(404);
@@ -23,8 +32,11 @@ if (!$notif) {
 
 // Mark as read
 $stmtRead = mysqli_prepare($koneksi, "UPDATE notifikasi SET status = 'read' WHERE id = ?");
-mysqli_stmt_bind_param($stmtRead, "i", $id);
-mysqli_stmt_execute($stmtRead);
+if ($stmtRead) {
+    mysqli_stmt_bind_param($stmtRead, "i", $id);
+    mysqli_stmt_execute($stmtRead);
+    mysqli_stmt_close($stmtRead);
+}
 
 // Ambil detail form
 $form = null;

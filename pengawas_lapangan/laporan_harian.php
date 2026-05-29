@@ -8,6 +8,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
     exit;
 }
 
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal. Periksa file koneksi.php dan jalankan MySQL.");
+}
+
 /* ================= SIMPAN DATA ================= */
 if(isset($_POST['submit'])){
 
@@ -34,14 +38,24 @@ if(isset($_POST['submit'])){
         VALUES (NULL,?,?,?,?,?,?,?,?)
         ");
 
-        mysqli_stmt_bind_param($stmt,"ssssssss",
-            $tanggal,$progres,$cuaca,$tenaga,$logistik,$alat,$kendala,$catatan
-        );
+        if (!$stmt) {
+            $error = "Gagal menyiapkan query: " . mysqli_error($koneksi);
+        } else {
+            mysqli_stmt_bind_param($stmt,"ssssssss",
+                $tanggal,$progres,$cuaca,$tenaga,$logistik,$alat,$kendala,$catatan
+            );
 
-        mysqli_stmt_execute($stmt);
+            if (!mysqli_stmt_execute($stmt)) {
+                $error = "Gagal menyimpan laporan: " . mysqli_stmt_error($stmt);
+            }
 
-        // 🔥 AMBIL ID TERAKHIR
-        $last_id = mysqli_insert_id($koneksi);
+            // 🔥 AMBIL ID TERAKHIR
+            $last_id = mysqli_insert_id($koneksi);
+        }
+
+        if (!isset($last_id)) {
+            $last_id = 0;
+        }
 
         if ($last_id) {
             // 🔥 REDIRECT KE HALAMAN DOKUMENTASI
@@ -58,6 +72,9 @@ $data = mysqli_query($koneksi,"
 SELECT * FROM laporan_harian
 ORDER BY tanggal DESC
 ");
+if (!$data) {
+    die("Query laporan harian gagal: " . mysqli_error($koneksi));
+}
 ?>
 
 <!DOCTYPE html>

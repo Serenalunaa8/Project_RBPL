@@ -6,6 +6,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== "teamleader") {
 }
 
 include "../koneksi.php";
+
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal. Silakan periksa file koneksi.php atau jalankan MySQL.");
+}
+
 $username = $_SESSION['username'];
 
 $archive_query = "SELECT lb.*, u.username AS koordinator_name
@@ -14,6 +19,9 @@ LEFT JOIN users u ON lb.koordinator_id = u.id
 WHERE lb.status = 'Disetujui'
 ORDER BY lb.updated_at DESC";
 $archive_result = mysqli_query($koneksi, $archive_query);
+if (!$archive_result) {
+    die('Query gagal: ' . mysqli_error($koneksi));
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">

@@ -1,6 +1,10 @@
 <?php
 session_start();
-include "../koneksi.php";
+require_once "../koneksi.php";
+
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
+}
 
 if (!isset($_SESSION['id']) || $_SESSION['role'] != 'kontraktor') {
     header("Location: ../login.php");
@@ -34,11 +38,19 @@ if ($keyword != '') {
 $where = implode(" AND ", $conditions);
 
 $sql = "SELECT * FROM form_izin_pekerjaan WHERE $where ORDER BY id DESC";
-$stmt = $koneksi->prepare($sql);
-$stmt->bind_param($types, ...$params);
-$stmt->execute();
-$data = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+$stmt = mysqli_prepare($koneksi, $sql);
+if (!$stmt) {
+    die('Query gagal: ' . mysqli_error($koneksi));
+}
+$bindParams = [$types];
+foreach ($params as $key => $value) {
+    $bindParams[] = &$params[$key];
+}
+call_user_func_array([$stmt, 'bind_param'], $bindParams);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$data = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+mysqli_stmt_close($stmt);
 
 function e($str){ return htmlspecialchars($str); }
 

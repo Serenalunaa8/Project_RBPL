@@ -1,6 +1,10 @@
 <?php
 session_start();
-include "../koneksi.php";
+require_once "../koneksi.php";
+
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
+}
 
 if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
     http_response_code(400);
@@ -14,17 +18,25 @@ if (isset($_GET['hapus']) && ctype_digit($_GET['hapus'])) {
     $hapus_id = (int)$_GET['hapus'];
 
     $stmt = mysqli_prepare($koneksi, "SELECT * FROM dokumentasi_lapangan WHERE id = ?");
-    mysqli_stmt_bind_param($stmt, "i", $hapus_id);
-    mysqli_stmt_execute($stmt);
-    $f = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $hapus_id);
+        mysqli_stmt_execute($stmt);
+        $f = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+    } else {
+        $f = false;
+    }
 
     if ($f) {
         $filepath = "uploads/" . $f['file_path'];
         if (file_exists($filepath)) @unlink($filepath);
 
         $del = mysqli_prepare($koneksi, "DELETE FROM dokumentasi_lapangan WHERE id = ?");
-        mysqli_stmt_bind_param($del, "i", $hapus_id);
-        mysqli_stmt_execute($del);
+        if ($del) {
+            mysqli_stmt_bind_param($del, "i", $hapus_id);
+            mysqli_stmt_execute($del);
+            mysqli_stmt_close($del);
+        }
     }
 
     header("Location: ?id=" . $laporan_id);
@@ -42,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Cek apakah ada file yang dikirim
-    if (empty($_FILES['file']['name'][0])) {
+    if (!isset($_FILES['file']) || empty($_FILES['file']['name'][0])) {
         echo json_encode(['status' => 'error', 'message' => 'Tidak ada file yang dikirim']);
         exit;
     }
@@ -91,11 +103,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = mysqli_prepare($koneksi,
                 "INSERT INTO dokumentasi_lapangan (laporan_id, file_path) VALUES (?, ?)"
             );
-            mysqli_stmt_bind_param($stmt, "is", $laporan_id, $new_name);
-            mysqli_stmt_execute($stmt);
-            $insert_id = mysqli_insert_id($koneksi);
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "is", $laporan_id, $new_name);
+                mysqli_stmt_execute($stmt);
+                $insert_id = mysqli_insert_id($koneksi);
+                mysqli_stmt_close($stmt);
 
-            $uploaded[] = ['id' => $insert_id, 'file' => $new_name];
+                $uploaded[] = ['id' => $insert_id, 'file' => $new_name];
+            } else {
+                $errors[] = "$name: gagal menyimpan metadata file ke database";
+            }
         } else {
             $errors[] = "$name: gagal dipindahkan ke folder uploads (cek permission folder)";
         }
@@ -112,17 +129,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ================= DATA ================= */
 $stmt = mysqli_prepare($koneksi, "SELECT * FROM laporan_harian WHERE id = ?");
+if (!$stmt) {
+    die("Query gagal: " . mysqli_error($koneksi));
+}
 mysqli_stmt_bind_param($stmt, "i", $laporan_id);
 mysqli_stmt_execute($stmt);
 $laporan = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+mysqli_stmt_close($stmt);
 
 if (!$laporan) die("Laporan tidak ditemukan.");
 
 $stmt2 = mysqli_prepare($koneksi, "SELECT * FROM dokumentasi_lapangan WHERE laporan_id = ? ORDER BY id DESC");
+if (!$stmt2) {
+    die("Query gagal: " . mysqli_error($koneksi));
+}
 mysqli_stmt_bind_param($stmt2, "i", $laporan_id);
 mysqli_stmt_execute($stmt2);
 $fotos_result = mysqli_stmt_get_result($stmt2);
 $fotos = mysqli_fetch_all($fotos_result, MYSQLI_ASSOC);
+mysqli_stmt_close($stmt2);
 ?>
 <!DOCTYPE html>
 <html lang="id">

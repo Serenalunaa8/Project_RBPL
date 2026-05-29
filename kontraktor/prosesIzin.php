@@ -1,6 +1,10 @@
 <?php
 session_start();
-include '../koneksi.php';
+require_once '../koneksi.php';
+
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
+}
 
 /* ================== CEK LOGIN ================== */
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'kontraktor') {
@@ -63,6 +67,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         (kontraktor_id, jenis_pekerjaan, volume, satuan, material, lokasi, metode_kerja, tanggal_mulai, tanggal_selesai, dokumen, status, catatan)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
+    if (!$stmt) {
+        die('Gagal menyiapkan query: ' . mysqli_error($koneksi));
+    }
+
     mysqli_stmt_bind_param(
         $stmt,
         "isssssssssss",
@@ -83,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (mysqli_stmt_execute($stmt)) {
         echo "<script>alert('Izin berhasil dikirim ke pengawas'); window.location='dashboard.php';</script>";
     } else {
-        echo "Error: " . mysqli_error($koneksi);
+        echo "Error: " . mysqli_stmt_error($stmt);
     }
 
     mysqli_stmt_close($stmt);

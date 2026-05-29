@@ -12,11 +12,19 @@ unset($_SESSION['message']);
 $error = $_SESSION['error'] ?? '';
 unset($_SESSION['error']);
 
-$reports_query = "SELECT lb.*, u.username AS koordinator_name
+$reports_result = false;
+if (!isset($koneksi) || !$koneksi) {
+    $error = 'Koneksi database gagal. Silakan periksa konfigurasi koneksi atau nyalakan server MySQL.';
+} else {
+    $reports_query = "SELECT lb.*, u.username AS koordinator_name
 FROM laporan_bulanan lb
 LEFT JOIN users u ON lb.koordinator_id = u.id
 ORDER BY lb.created_at DESC";
-$reports_result = mysqli_query($koneksi, $reports_query);
+    $reports_result = mysqli_query($koneksi, $reports_query);
+    if ($reports_result === false) {
+        $error = 'Query gagal: ' . mysqli_error($koneksi);
+    }
+}
 
 function statusBadgeClass($status) {
     if ($status === 'Disetujui') return 'badge-approved';

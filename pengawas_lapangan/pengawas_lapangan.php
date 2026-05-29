@@ -8,8 +8,12 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
     exit;
 }
 
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal. Periksa file koneksi.php dan jalankan MySQL.");
+}
+
 /* ================== STATISTIK ================== */
-$stats = mysqli_fetch_assoc(mysqli_query($koneksi, "
+$stats_query = "
     SELECT 
         COUNT(*) as total,
         SUM(status='Menunggu Review') as menunggu,
@@ -17,7 +21,12 @@ $stats = mysqli_fetch_assoc(mysqli_query($koneksi, "
         SUM(status='Ditolak') as ditolak,
         SUM(status='Dalam Verifikasi') as verifikasi
     FROM form_izin_pekerjaan
-"));
+";
+$stats_result = mysqli_query($koneksi, $stats_query);
+if (!$stats_result) {
+    die("Query statistik gagal: " . mysqli_error($koneksi));
+}
+$stats = mysqli_fetch_assoc($stats_result);
 
 $total = $stats['total'] ?? 0;
 $menunggu = $stats['menunggu'] ?? 0;

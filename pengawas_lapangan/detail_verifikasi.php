@@ -1,43 +1,60 @@
 <?php
 session_start();
-include "../koneksi.php";
+$error = '';
+$data = null;
+$queryFoto = null;
+$koneksi = null;
 
-/* ================== CEK ROLE ================== */
+require_once "../koneksi.php";
+
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
     header("Location: ../login.php");
     exit;
 }
 
-/* ================== AMBIL ID ================== */
-if (!isset($_GET['id'])) {
-    die("ID tidak ditemukan");
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+if ($id === false || $id === null) {
+    $error = 'ID tidak ditemukan.';
 }
 
-$id = (int)$_GET['id'];
-
-/* ================== AMBIL DATA ================== */
-$query = mysqli_query($koneksi, "
-    SELECT f.*, u.username
-    FROM form_izin_pekerjaan f
-    LEFT JOIN users u ON f.kontraktor_id = u.id
-    WHERE f.id=$id
-");
-
-$data = mysqli_fetch_assoc($query);
-$queryFoto = mysqli_query($koneksi, "
-SELECT * FROM laporan_harian 
-WHERE id = $id
-ORDER BY tanggal DESC
-");
-
-if (!$data) {
-    die("Data tidak ditemukan");
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if (empty($error)) {
+    $stmt = mysqli_prepare($koneksi, "SELECT f.*, u.username FROM form_izin_pekerjaan f LEFT JOIN users u ON f.kontraktor_id = u.id WHERE f.id = ?");
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $data = $result ? mysqli_fetch_assoc($result) : null;
+        mysqli_stmt_close($stmt);
+    } else {
+        $error = 'Query gagal: ' . mysqli_error($koneksi);
+    }
+
+    if (empty($error)) {
+        $stmt = mysqli_prepare($koneksi, "SELECT * FROM laporan_harian WHERE id = ? ORDER BY tanggal DESC");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'i', $id);
+            mysqli_stmt_execute($stmt);
+            $queryFoto = mysqli_stmt_get_result($stmt);
+            mysqli_stmt_close($stmt);
+        } else {
+            $queryFoto = null;
+        }
+    }
+
+    if (empty($error) && !$data) {
+        $error = 'Data tidak ditemukan.';
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && empty($error)) {
 
     $action = $_POST['action'] ?? '';
-    $catatan = mysqli_real_escape_string($koneksi, $_POST['catatan'] ?? '');
+    $catatan = $_POST['catatan'] ?? '';
+    $new_status_escaped = '';
 
     if ($action == 'approve') {
         $new_status = 'Disetujui Pengawas';
@@ -50,33 +67,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($new_status) {
+        $stmt = mysqli_prepare($koneksi, "UPDATE form_izin_pekerjaan SET status = ?, catatan = ? WHERE id = ?");
+        if ($stmt) {
+            $new_status_escaped = $new_status;
+            mysqli_stmt_bind_param($stmt, 'ssi', $new_status_escaped, $catatan, $id);
+            if (!mysqli_stmt_execute($stmt)) {
+                $error = 'Gagal memperbarui status: ' . mysqli_stmt_error($stmt);
+            }
+            mysqli_stmt_close($stmt);
+        } else {
+            $error = 'Gagal mempersiapkan update status.';
+        }
+    }
 
-        $new_status_escaped = mysqli_real_escape_string($koneksi, $new_status);
+    if (empty($error) && $new_status) {
+        $kontraktor_id = (int)($data['kontraktor_id'] ?? 0);
+        $jenis = $data['jenis_pekerjaan'] ?? '';
+        $pesan = "Status izin pekerjaan '$jenis' telah diperbarui menjadi '$new_status'.";
 
-        mysqli_query($koneksi, "
-            UPDATE form_izin_pekerjaan 
-            SET status='$new_status_escaped', catatan='$catatan'
-            WHERE id=$id
-        ");
+        $stmt = mysqli_prepare($koneksi, "INSERT INTO notifikasi (user_id, pesan, form_id) VALUES (?, ?, ?)");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'isi', $kontraktor_id, $pesan, $id);
+            if (!mysqli_stmt_execute($stmt)) {
+                $error = 'Gagal menyimpan notifikasi: ' . mysqli_stmt_error($stmt);
+            }
+            mysqli_stmt_close($stmt);
+        } else {
+            $error = 'Gagal mempersiapkan notifikasi.';
+        }
+    }
 
-        $kontraktor_id = (int)$data['kontraktor_id'];
-        $jenis = mysqli_real_escape_string($koneksi, $data['jenis_pekerjaan']);
-
-        $pesan = "Status izin pekerjaan '$jenis' telah diperbarui menjadi '$new_status_escaped'.";
-        $pesan_escaped = mysqli_real_escape_string($koneksi, $pesan);
-
-        mysqli_query($koneksi, "
-    INSERT INTO notifikasi (user_id, pesan, form_id) 
-    VALUES ('$kontraktor_id', '$pesan_escaped', '$id')
-");
-
+    if (empty($error) && $new_status) {
         header("Location: verifikasi_lapangan.php");
         exit;
     }
 }
 
 // Export PDF
-if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
+if (empty($error) && isset($_GET['export']) && $_GET['export'] == 'pdf') {
     ?>
     <!DOCTYPE html>
     <html>
@@ -625,12 +653,19 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
             <h1>Detail Izin Pekerjaan</h1>
             <div class="topbar-actions">
                 <a href="verifikasi_lapangan.php" class="btn-back">← Kembali</a>
-                <a href="?id=<?= $data['id'] ?>&export=pdf" class="btn-pdf" target="_blank">📥 Export PDF</a>
+                <?php if (empty($error)): ?>
+                    <a href="?id=<?= $data['id'] ?>&export=pdf" class="btn-pdf" target="_blank">📥 Export PDF</a>
+                <?php endif; ?>
             </div>
         </header>
 
-        <!-- DETAIL IZIN -->
-        <div class="detail-card">
+        <?php if (!empty($error)): ?>
+            <div class="detail-card">
+                <div class="error-message"><?= htmlspecialchars($error) ?></div>
+            </div>
+        <?php else: ?>
+            <!-- DETAIL IZIN -->
+            <div class="detail-card">
             <h2 class="section-title">Informasi Izin Pekerjaan</h2>
             
             <div class="detail-grid">
@@ -727,7 +762,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
         <div class="detail-card">
             <h2 class="section-title">Verifikasi Izin</h2>
             
-            <?php if (isset($error)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="error-message" style="color: #ff4444; background: rgba(255,68,68,0.1); padding: 10px; border-radius: 6px; margin-bottom: 20px;">
                     <?php echo htmlspecialchars($error); ?>
                 </div>
@@ -755,13 +790,13 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
             </form>
         </div>
 
-    </main>
-</div>
+        <?php endif; ?>
 
-<div class="detail-card">
+        <?php if (empty($error)): ?>
+        <div class="detail-card">
     <h2 class="section-title">Laporan Harian</h2>
 
-    <?php if(mysqli_num_rows($queryFoto) > 0): ?>
+<?php if ($queryFoto && mysqli_num_rows($queryFoto) > 0): ?>
         
         <?php while($f = mysqli_fetch_assoc($queryFoto)): ?>
             
@@ -784,6 +819,9 @@ if (isset($_GET['export']) && $_GET['export'] == 'pdf') {
     <?php else: ?>
         <p style="color:#888;">Belum ada laporan harian</p>
     <?php endif; ?>
+</div>
+        <?php endif; ?>
+    </main>
 </div>
 
 <script>
