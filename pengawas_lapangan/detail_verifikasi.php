@@ -12,6 +12,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
     exit;
 }
 
+$active_page = 'verifikasi';
+
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if ($id === false || $id === null) {
     $error = 'ID tidak ditemukan.';
@@ -234,70 +236,208 @@ if (empty($error) && isset($_GET['export']) && $_GET['export'] == 'pdf') {
         /* ── SIDEBAR ── */
         .sidebar {
             width: 260px;
-            background: #1a1a1a;
-            padding: 30px 20px;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            position: sticky;
+            background: #101010;
+            padding: 28px 0;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            position: fixed;
             top: 0;
+            left: 0;
             height: 100vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10;
+            animation: slideLeft .35s ease both;
+            box-shadow: 2px 0 24px rgba(0, 0, 0, 0.25);
         }
 
-        .sidebar-brand {
+        .brand {
+            padding: 0 22px 28px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .brand-inner {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 40px;
+            gap: 12px;
         }
 
-        .logo-arch {
+        .logo-svg {
             width: 38px;
             height: 38px;
-            stroke: #ffc107;
-            stroke-width: 4;
-            fill: none;
+            flex-shrink: 0;
         }
 
-        .sidebar h2 {
-            font-size: 16px;
+        .brand-text h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
         }
 
-        .sidebar span {
+        .brand-text h1 span {
             color: #ffc107;
         }
 
-        .sidebar nav {
+        .brand-text p {
+            font-size: 10px;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .nav-section {
+            padding: 20px 14px 0;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
         }
 
-        .sidebar nav a {
+        .nav-label {
+            font-size: 10px;
+            color: #888;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #ccc;
+            font-size: 13.5px;
+            font-weight: 400;
             text-decoration: none;
-            color: #cccccc;
-            padding: 10px;
-            border-radius: 6px;
-            transition: 0.3s;
-            font-size: 14px;
+            transition: all 0.25s;
+            position: relative;
+            width: 100%;
         }
 
-        .sidebar nav a:hover,
-        .sidebar nav a.active {
+        .nav-item:hover {
+            background: rgba(255,193,7,0.07);
+            color: #ddd;
+        }
+
+        .nav-item.active {
+            background: rgba(255,193,7,0.12);
+            color: #ffc107;
+            font-weight: 500;
+        }
+
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
             background: #ffc107;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active .nav-icon {
+            opacity: 1;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 18px 18px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            align-items: flex-start;
+            border-radius: 10px;
+            background: #111;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #ffc107;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
             color: #111;
+            flex-shrink: 0;
         }
 
-        .logout {
-            margin-top: 30px;
-            background: #2a2a2a;
+        .user-info p {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
         }
 
-        /* ── MAIN ── */
+        .user-info span {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 14px;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #ccc;
+            font-size: 13px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: #ff4d4d;
+            color: #ff4d4d;
+        }
+
         .main-content {
             flex: 1;
-            padding: 50px;
+            margin-left: 260px;
+            width: min(1080px, calc(100vw - 320px));
+            padding: 50px 40px;
             overflow-y: auto;
+            animation: slideRight .35s ease both;
         }
+
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(-24px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(24px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── TOPBAR ── */
 
         /* ── TOPBAR ── */
         .topbar {
@@ -459,12 +599,14 @@ if (empty($error) && isset($_GET['export']) && $_GET['export'] == 'pdf') {
                 margin-bottom: 6px;
             }
     
-            .laporan-item img {
+            .laporan-item img,
+            .laporan-image {
                 width: 220px;
+                max-width: 100%;
                 border-radius: 8px;
                 margin-top: 10px;
             }
-    
+
             /* ── ERROR MESSAGE ── */
             .error-message {
                 background: rgba(255, 68, 68, 0.1);
@@ -627,23 +769,7 @@ if (empty($error) && isset($_GET['export']) && $_GET['export'] == 'pdf') {
 <div class="dashboard-container">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 120 120" class="logo-arch">
-                <rect x="10" y="10" width="100" height="100"/>
-                <path d="M35 80 V40 H60"/>
-                <path d="M60 40 L75 60 L90 40 V80"/>
-            </svg>
-            <h2>CIPTA<span>MANUNGGAL</span></h2>
-        </div>
-
-        <nav>
-            <a href="pengawas_lapangan.php">Dashboard</a>
-            <a href="verifikasi_lapangan.php" class="active">Verifikasi</a>
-            <a href="laporan_verifikasi.php">Laporan Harian</a>
-            <a href="../logout.php" class="logout">Logout</a>
-        </nav>
-    </aside>
+    <?php include 'sidebar.php'; ?>
 
     <!-- MAIN -->
     <main class="main-content">
@@ -800,20 +926,15 @@ if (empty($error) && isset($_GET['export']) && $_GET['export'] == 'pdf') {
         
         <?php while($f = mysqli_fetch_assoc($queryFoto)): ?>
             
-            <div style="
-                margin-bottom:20px;
-                padding:15px;
-                background:#111;
-                border-radius:10px;
-            ">
-                <p><b>Tanggal:</b> <?= $f['tanggal'] ?></p>
-                <p><b>Progress:</b> <?= $f['progres'] ?>%</p>
-                <p><b>Cuaca:</b> <?= $f['cuaca'] ?></p>
+            <div class="laporan-item">
+                <p><b>Tanggal:</b> <?= htmlspecialchars($f['tanggal']) ?></p>
+                <p><b>Progress:</b> <?= htmlspecialchars($f['progres']) ?>%</p>
+                <p><b>Cuaca:</b> <?= htmlspecialchars($f['cuaca']) ?></p>
 
-                <img src="../upload/<?= $f['foto'] ?>" 
-                     style="width:220px; border-radius:8px; margin-top:10px;">
+                <?php if (!empty($f['file_path'])): ?>
+                    <img src="../upload/<?= htmlspecialchars($f['file_path']) ?>" alt="Dokumentasi" class="laporan-image">
+                <?php endif; ?>
             </div>
-
         <?php endwhile; ?>
 
     <?php else: ?>
