@@ -64,6 +64,8 @@ $jumlah_approved = $stats['disetujui'] ?? 0;
 $jumlah_ditolak = $stats['ditolak'] ?? 0;
 $jumlah_verifikasi = $stats['verifikasi'] ?? 0;
 
+$active_page = 'verifikasi';
+
 // Helper function untuk status class
 function getStatusClass($status) {
     if($status === 'Menunggu Review'){
@@ -86,213 +88,8 @@ function getStatusClass($status) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verifikasi Izin Pekerjaan | CV Cipta Manunggal Konsultan</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../koordinator_pengawas/asset/koordinator.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #111111;
-            color: #ffffff;
-        }
-
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ── SIDEBAR ── */
-        .sidebar {
-            width: 260px;
-            background: #1a1a1a;
-            padding: 30px 20px;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 40px;
-        }
-
-        .logo-arch {
-            width: 38px;
-            height: 38px;
-            stroke: #ffc107;
-            stroke-width: 4;
-            fill: none;
-        }
-
-        .sidebar h2 {
-            font-size: 16px;
-        }
-
-        .sidebar span {
-            color: #ffc107;
-        }
-
-        .sidebar nav {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .sidebar nav a {
-            text-decoration: none;
-            color: #cccccc;
-            padding: 12px 14px;
-            border-radius: 6px;
-            transition: 0.3s;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .sidebar nav a:hover,
-        .sidebar nav a.active {
-            background: #ffc107;
-            color: #111;
-        }
-
-        .badge-notif {
-            background: #ff4444;
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .logout {
-            margin-top: 30px;
-            background: #2a2a2a;
-        }
-
-        /* ── MAIN ── */
-        .main-content {
-            flex: 1;
-            padding: 50px;
-            overflow-y: auto;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .topbar h1 {
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .topbar p {
-            font-size: 14px;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        .role-badge {
-            background: #ffc107;
-            color: #111;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        /* ── STATS ── */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: #1c1c1c;
-            padding: 28px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, #ffc107, #ffb300);
-        }
-
-        .stat-card:hover {
-            border-color: #ffc107;
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(255, 193, 7, 0.15);
-        }
-
-        .stat-card.warning::before {
-            background: linear-gradient(90deg, #ff9800, #ff7500);
-        }
-
-        .stat-card.danger::before {
-            background: linear-gradient(90deg, #ff4444, #cc0000);
-        }
-
-        .stat-card.success::before {
-            background: linear-gradient(90deg, #22c55e, #16a34a);
-        }
-
-        .stat-card.info::before {
-            background: linear-gradient(90deg, #60a5fa, #3b82f6);
-        }
-
-        .stat-card h3 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .stat-card.warning h3 {
-            color: #ff9800;
-        }
-
-        .stat-card.danger h3 {
-            color: #ff4444;
-        }
-
-        .stat-card.success h3 {
-            color: #22c55e;
-        }
-
-        .stat-card.info h3 {
-            color: #60a5fa;
-        }
-
-        .stat-card p {
-            font-size: 13px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
         /* ── FILTER CARD ── */
         .filter-section {
             background: #1c1c1c;
@@ -466,67 +263,14 @@ function getStatusClass($status) {
 
         /* ── RESPONSIVE ── */
         @media (max-width: 1024px) {
-            .sidebar {
-                width: 220px;
-            }
-
-            .main-content {
+            .main {
                 padding: 30px;
-            }
-
-            .stats {
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             }
         }
 
         @media (max-width: 768px) {
-            .dashboard-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: 1px solid rgba(255,255,255,0.05);
+            .main {
                 padding: 20px;
-            }
-
-            .sidebar nav {
-                flex-direction: row;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-
-            .sidebar nav a {
-                flex: 1;
-                min-width: 100px;
-                justify-content: center;
-                flex-direction: column;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .topbar {
-                flex-direction: column;
-                gap: 16px;
-                align-items: flex-start;
-            }
-
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-
-            .stat-card {
-                padding: 18px;
-            }
-
-            .stat-card h3 {
-                font-size: 28px;
             }
 
             .filter-form {
@@ -550,70 +294,55 @@ function getStatusClass($status) {
 </head>
 <body>
 
-<div class="dashboard-container">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 120 120" class="logo-arch">
-                <rect x="10" y="10" width="100" height="100"/>
-                <path d="M35 80 V40 H60"/>
-                <path d="M60 40 L75 60 L90 40 V80"/>
-            </svg>
-            <h2>CIPTA<span>MANUNGGAL</span></h2>
+<?php include 'sidebar.php'; ?>
+
+<main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div>
+            <h2>Verifikasi Izin Pekerjaan</h2>
+            <div class="section-sub">Tinjau dan verifikasi izin pekerjaan dari kontraktor</div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid fade-up" style="animation-delay:.04s; display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;">
+        <div class="stat-card">
+            <div class="stat-label">Total Pengajuan</div>
+            <div class="stat-val"><?php echo $total_pengajuan; ?></div>
+            <div class="stat-sub">Semua izin pekerjaan</div>
+            <div class="stat-icon">📋</div>
         </div>
 
-        <nav>
-            <a href="pengawas_lapangan.php">Dashboard</a>
-            <a href="verifikasi_lapangan.php" class="active">
-                Verifikasi
-                <?php if($jumlah_antrean > 0): ?>
-                    <span class="badge-notif"><?php echo $jumlah_antrean; ?></span>
-                <?php endif; ?>
-            </a>
-            <a href="laporan_verifikasi.php">Laporan Harian</a>
-            <a href="../logout.php" class="logout">Logout</a>
-        </nav>
-    </aside>
+        <div class="stat-card">
+            <div class="stat-label">Menunggu Verifikasi</div>
+            <div class="stat-val" style="color: #f59e0b;"><?php echo $jumlah_antrean; ?></div>
+            <div class="stat-sub">Perlu ditinjau</div>
+            <div class="stat-icon">⏳</div>
+        </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
+        <div class="stat-card">
+            <div class="stat-label">Dalam Verifikasi</div>
+            <div class="stat-val" style="color: #60a5fa;"><?php echo $jumlah_verifikasi; ?></div>
+            <div class="stat-sub">Sedang diproses</div>
+            <div class="stat-icon">🔄</div>
+        </div>
 
-        <!-- HEADER -->
-        <header class="topbar">
-            <div>
-                <h1>Verifikasi Izin Pekerjaan</h1>
-                <p>Tinjau dan verifikasi izin pekerjaan dari kontraktor</p>
-            </div>
-            <div class="role-badge">PENGAWAS LAPANGAN</div>
-        </header>
+        <div class="stat-card">
+            <div class="stat-label">Disetujui</div>
+            <div class="stat-val" style="color: #22c55e;"><?php echo $jumlah_approved; ?></div>
+            <div class="stat-sub">Sudah diverifikasi</div>
+            <div class="stat-icon">✅</div>
+        </div>
 
-        <!-- STATS -->
-        <section class="stats">
-            <div class="stat-card">
-                <h3><?php echo $total_pengajuan; ?></h3>
-                <p>Total Pengajuan</p>
-            </div>
-
-            <div class="stat-card warning">
-                <h3><?php echo $jumlah_antrean; ?></h3>
-                <p>Menunggu Verifikasi</p>
-            </div>
-
-            <div class="stat-card info">
-                <h3><?php echo $jumlah_verifikasi; ?></h3>
-                <p>Dalam Verifikasi</p>
-            </div>
-
-            <div class="stat-card success">
-                <h3><?php echo $jumlah_approved; ?></h3>
-                <p>Disetujui</p>
-            </div>
-
-            <div class="stat-card danger">
-                <h3><?php echo $jumlah_ditolak; ?></h3>
-                <p>Ditolak</p>
-            </div>
-        </section>
+        <div class="stat-card">
+            <div class="stat-label">Ditolak</div>
+            <div class="stat-val" style="color: #ef4444;"><?php echo $jumlah_ditolak; ?></div>
+            <div class="stat-sub">Tidak disetujui</div>
+            <div class="stat-icon">❌</div>
+        </div>
+    </div>
 
         <!-- FILTER -->
         <div class="filter-section">
@@ -688,7 +417,6 @@ function getStatusClass($status) {
         </section>
 
     </main>
-</div>
 
 </body>
 </html>
