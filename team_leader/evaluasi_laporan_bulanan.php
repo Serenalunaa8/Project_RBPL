@@ -38,33 +38,53 @@ function statusBadgeClass($status) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evaluasi Laporan Bulanan | Team Leader</title>
-    <link rel="stylesheet" href="asset/teamleader.css">
+    <link rel="stylesheet" href="asset/teamleader.css?v=20260612">
 </head>
 <body>
 <div class="dashboard-container">
     <aside class="sidebar">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 120 120" class="logo-arch">
-                <rect x="10" y="10" width="100" height="100"/>
-                <path d="M35 80 V40 H60"/>
-                <path d="M60 40 L75 60 L90 40 V80"/>
-            </svg>
-            <div class="brand-name">CIPTA<br><span>MANUNGGAL</span></div>
+        <div class="brand">
+            <div class="brand-inner">
+                <svg viewBox="0 0 120 120" class="logo-arch">
+                    <rect x="10" y="10" width="100" height="100"/>
+                    <path d="M35 80 V40 H60"/>
+                    <path d="M60 40 L75 60 L90 40 V80"/>
+                </svg>
+                <div class="brand-text">
+                    <h1>CIPTA <span>MANUNGGAL</span></h1>
+                    <p>Team Leader</p>
+                </div>
+            </div>
         </div>
-        <nav>
-            <a href="teamleader.php">
-                <span class="nav-icon">⊞</span> Dashboard
+        <nav class="nav-section">
+            <div class="nav-label">Menu Utama</div>
+            <a href="teamleader.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>
+                Dashboard
             </a>
-            <a href="evaluasi_laporan_bulanan.php" class="active">
-                <span class="nav-icon">📊</span> Evaluasi Laporan
+            <a href="evaluasi_laporan_bulanan.php" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12h12"/><path d="M5 8h7"/><path d="M7 4h5"/></svg>
+                Evaluasi Laporan
             </a>
-            <a href="riwayat_laporan_bulanan.php">
-                <span class="nav-icon">🗂</span> Riwayat Laporan
+            <a href="riwayat_laporan_bulanan.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2 1.5"/></svg>
+                Riwayat Laporan
             </a>
         </nav>
-        <div class="logout-link">
-            <a href="../logout.php">
-                <span class="nav-icon">↩</span> Logout
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="avatar">TL</div>
+                <div class="user-info">
+                    <p><?= htmlspecialchars($username) ?></p>
+                    <span>Team Leader Aktif</span>
+                </div>
+            </div>
+            <a href="../logout.php" class="logout-btn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 2H3a1 1 0 00-1 1v10a1 1 0 001 1h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Logout
             </a>
         </div>
     </aside>

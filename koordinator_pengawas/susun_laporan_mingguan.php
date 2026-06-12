@@ -7,6 +7,114 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "koordinator") {
     header("Location: ../login.php");
     exit;
 }
+
+// Fungsi untuk keamanan output
+function safe($str) {
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+}
+
+// Initialize variables
+$success = '';
+$error = '';
+
+// Handle POST submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    global $koneksi;
+    
+    // Debug: Log POST data
+    error_log("POST Data: " . print_r($_POST, true));
+    error_log("Session: " . print_r($_SESSION, true));
+    
+    // Check if connection exists
+    if (!$koneksi) {
+        $error = 'Error: Koneksi database gagal!';
+    } else {
+        $judul = isset($_POST['judul']) ? trim($_POST['judul']) : '';
+        $periode = isset($_POST['periode']) ? trim($_POST['periode']) : '';
+        $ringkasan = isset($_POST['ringkasan']) ? trim($_POST['ringkasan']) : '';
+        $temuan = isset($_POST['temuan']) ? trim($_POST['temuan']) : '';
+        $pencapaian = isset($_POST['pencapaian']) ? trim($_POST['pencapaian']) : '';
+        $kendala = isset($_POST['kendala']) ? trim($_POST['kendala']) : '';
+        $progress = isset($_POST['progress']) ? intval($_POST['progress']) : 0;
+        $total_tk = isset($_POST['total_tk']) ? intval($_POST['total_tk']) : 0;
+        $koordinator_id = isset($_SESSION['id']) ? intval($_SESSION['id']) : 0;
+
+        // Validasi input
+        if (empty($judul)) {
+            $error = 'Judul Laporan tidak boleh kosong!';
+        } else if (empty($ringkasan)) {
+            $error = 'Ringkasan Progres Pekerjaan tidak boleh kosong!';
+        } else if ($koordinator_id == 0) {
+            $error = 'Error: User ID tidak ditemukan dalam session. Silakan login ulang.';
+        } else {
+            // Simpan laporan mingguan dan sekaligus buat entri laporan bulanan untuk evaluasi Team Leader
+            mysqli_begin_transaction($koneksi);
+
+            $weekly_query = "INSERT INTO laporan_mingguan 
+                      (judul, periode, ringkasan, temuan, pencapaian, kendala, progress, total_tk, status) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Tersimpan')";
+            $weekly_stmt = $koneksi->prepare($weekly_query);
+
+            if ($weekly_stmt) {
+                $weekly_stmt->bind_param(
+                    "ssssssii",
+                    $judul,
+                    $periode,
+                    $ringkasan,
+                    $temuan,
+                    $pencapaian,
+                    $kendala,
+                    $progress,
+                    $total_tk
+                );
+
+                if ($weekly_stmt->execute()) {
+                    $monthly_query = "INSERT INTO laporan_bulanan 
+                        (koordinator_id, judul, periode, deskripsi, capaian, kendala, status) 
+                        VALUES (?, ?, ?, ?, ?, ?, 'Belum Dievaluasi')";
+                    $monthly_stmt = $koneksi->prepare($monthly_query);
+
+                    if ($monthly_stmt) {
+                        $monthly_stmt->bind_param(
+                            "isssss",
+                            $koordinator_id,
+                            $judul,
+                            $periode,
+                            $ringkasan,
+                            $pencapaian,
+                            $kendala
+                        );
+
+                        if ($monthly_stmt->execute()) {
+                            mysqli_commit($koneksi);
+                            $success = 'Laporan mingguan dan laporan bulanan berhasil disimpan!';
+                            error_log("Laporan mingguan dan bulanan berhasil disimpan untuk koordinator_id: $koordinator_id");
+                            $_POST = array();
+                        } else {
+                            mysqli_rollback($koneksi);
+                            $error = 'Gagal menyimpan laporan bulanan: ' . $monthly_stmt->error;
+                            error_log("Monthly execute error: " . $monthly_stmt->error);
+                        }
+                        $monthly_stmt->close();
+                    } else {
+                        mysqli_rollback($koneksi);
+                        $error = 'Error prepare statement laporan bulanan: ' . $koneksi->error;
+                        error_log("Monthly prepare error: " . $koneksi->error);
+                    }
+                } else {
+                    mysqli_rollback($koneksi);
+                    $error = 'Gagal menyimpan laporan mingguan: ' . $weekly_stmt->error;
+                    error_log("Weekly execute error: " . $weekly_stmt->error);
+                }
+                $weekly_stmt->close();
+            } else {
+                $error = 'Error prepare statement laporan mingguan: ' . $koneksi->error;
+                error_log("Weekly prepare error: " . $koneksi->error);
+            }
+        }
+    }
+}
+
 ?>
 
 <?php
@@ -160,23 +268,23 @@ $active_page = 'susun';
             <div class="form-row">
                 <div class="form-group">
                     <label>Judul Laporan *</label>
-                    <input type="text" id="judul-laporan" name="judul" placeholder="cth: Laporan Minggu 11 – April 2026" value="<?= safe($_POST['judul'] ?? '') ?>">
+                    <input type="text" id="judul-laporan" name="judul" placeholder="cth: Laporan Minggu 11 – April 2026" value="<?= safe($_POST['judul'] ?? '') ?>" required>
                 </div>
                 <div class="form-group">
                     <label>Periode *</label>
-                    <select id="minggu-ke" name="periode" onchange="updatePeriode(this.value)">
+                    <select id="minggu-ke" name="periode" onchange="updatePeriode(this.value)" required>
+                        <option value="">-- Pilih Periode --</option>
                         <option value="25 Mar – 01 Apr 2026">Minggu 11 (25 Mar – 01 Apr 2026)</option>
                         <option value="18 – 24 Mar 2026">Minggu 10 (18 – 24 Mar 2026)</option>
                         <option value="11 – 17 Mar 2026">Minggu 9 (11 – 17 Mar 2026)</option>
                     </select>
-                    <input type="hidden" id="periode-laporan" name="periode_hidden" value="25 Mar – 01 Apr 2026">
                 </div>
             </div>
 
             <div class="form-row full">
                 <div class="form-group">
                     <label>Ringkasan Progres Pekerjaan *</label>
-                    <textarea id="ringkasan" name="ringkasan" placeholder="Tuliskan ringkasan kemajuan pekerjaan selama minggu ini..."><?= safe($_POST['ringkasan'] ?? '') ?></textarea>
+                    <textarea id="ringkasan" name="ringkasan" placeholder="Tuliskan ringkasan kemajuan pekerjaan selama minggu ini..." required><?= safe($_POST['ringkasan'] ?? '') ?></textarea>
                 </div>
             </div>
 
@@ -225,71 +333,6 @@ $active_page = 'susun';
     </form>
 </main>
 
-<script>
-// Update date chip
-function updateDateChip() {
-    const now = new Date();
-    const options = { 
-        weekday: 'short', 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    };
-    document.getElementById('date-chip').textContent = now.toLocaleDateString('id-ID', options);
-}
-updateDateChip();
-setInterval(updateDateChip, 60000);
-
-// Update progress preview
-document.getElementById('progress-pct').addEventListener('input', function() {
-    const pct = this.value;
-    document.getElementById('progress-preview').style.width = pct + '%';
-    document.getElementById('progress-label').textContent = pct + '%';
-});
-
-// Update periode
-function updatePeriode(value) {
-    document.getElementById('periode-laporan').value = value;
-}
-
-// Pratinjau
-function pratinjau() {
-    const judul = document.getElementById('judul-laporan').value;
-    const ringkasan = document.getElementById('ringkasan').value;
-    const progress = document.getElementById('progress-pct').value;
-    
-    if (!judul || !ringkasan) {
-        alert('Judul dan ringkasan harus diisi!');
-        return;
-    }
-    
-    alert(`Pratinjau Laporan:\n\nJudul: ${judul}\nProgress: ${progress}%\nRingkasan: ${ringkasan.substring(0, 100)}...`);
-}
-
-// Simpan laporan
-function simpanLaporan() {
-    const judul = document.getElementById('judul-laporan').value;
-    const ringkasan = document.getElementById('ringkasan').value;
-    const progress = document.getElementById('progress-pct').value;
-    
-    if (!judul || !ringkasan) {
-        alert('Judul dan ringkasan harus diisi!');
-        return;
-    }
-    
-    // Simulate saving
-    alert('Laporan berhasil disimpan!');
-    // In real implementation, this would send data to server
-}
-</script>
-
-</body>
-</html>
-    </main>
-</div>
-
 <!-- PRATINJAU MODAL -->
 <div class="modal-overlay" id="modal-pratinjau">
     <div class="modal">
@@ -309,10 +352,6 @@ function simpanLaporan() {
 <div class="toast" id="toast"></div>
 
 <script>
-function updatePeriode(val){
-    document.getElementById('periode-laporan').value = val;
-}
-
 document.getElementById('progress-pct').addEventListener('input', function(){
     const v = Math.min(100, Math.max(0, this.value || 0));
     document.getElementById('progress-preview').style.width = v + '%';
@@ -321,7 +360,7 @@ document.getElementById('progress-pct').addEventListener('input', function(){
 
 function pratinjau(){
     const judul = document.getElementById('judul-laporan').value || '(Belum diisi)';
-    const periode = document.getElementById('periode-laporan').value;
+    const periode = document.getElementById('minggu-ke').value || '(Belum dipilih)';
     const ringkasan = document.getElementById('ringkasan').value || '(Kosong)';
     const temuan = document.getElementById('temuan').value || '(Kosong)';
     const pencapaian = document.getElementById('pencapaian').value || '(Kosong)';
