@@ -75,6 +75,8 @@ ORDER BY tanggal DESC
 if (!$data) {
     die("Query laporan harian gagal: " . mysqli_error($koneksi));
 }
+
+$active_page = 'laporan';
 ?>
 
 <!DOCTYPE html>
@@ -98,72 +100,211 @@ body {
 .dashboard-container {
     display: flex;
     min-height: 100vh;
+    align-items: flex-start;
 }
 
 /* ── SIDEBAR ── */
 .sidebar {
     width: 260px;
-    background: #1a1a1a;
-    padding: 30px 20px;
-    border-right: 1px solid rgba(255,255,255,0.05);
-    position: sticky;
+    background: #101010;
+    padding: 28px 0;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    position: fixed;
     top: 0;
+    left: 0;
     height: 100vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+    animation: slideLeft .35s ease both;
+    box-shadow: 2px 0 24px rgba(0, 0, 0, 0.25);
 }
 
-.sidebar-brand {
+.brand {
+    padding: 0 22px 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.brand-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-svg {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+}
+
+.brand-text h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+}
+
+.brand-text h1 span {
+    color: #ffc107;
+}
+
+.brand-text p {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.nav-section {
+    padding: 20px 14px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-label {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 8px;
+}
+
+.nav-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 40px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #ccc;
+    font-size: 13.5px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: all 0.25s;
+    position: relative;
+    width: 100%;
 }
 
-.logo-arch {
-    width: 38px;
-    height: 38px;
-    stroke: #ffc107;
-    stroke-width: 4;
-    fill: none;
+.nav-item:hover {
+    background: rgba(255,193,7,0.07);
+    color: #ddd;
 }
 
-.sidebar h2 { font-size: 16px; }
-.sidebar span { color: #ffc107; }
+.nav-item.active {
+    background: rgba(255,193,7,0.12);
+    color: #ffc107;
+    font-weight: 500;
+}
 
-.sidebar nav {
+.nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    background: #ffc107;
+    border-radius: 0 3px 3px 0;
+}
+
+.nav-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.nav-item.active .nav-icon {
+    opacity: 1;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding: 18px 18px;
+    border-top: 1px solid rgba(255,255,255,0.08);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 14px;
+    align-items: flex-start;
+    border-radius: 10px;
+    background: #111;
 }
 
-.sidebar nav a {
-    text-decoration: none;
-    color: #cccccc;
-    padding: 10px;
-    border-radius: 6px;
-    transition: 0.3s;
-    font-size: 14px;
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
-.sidebar nav a:hover,
-.sidebar nav a.active {
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
     background: #ffc107;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
     color: #111;
+    flex-shrink: 0;
 }
 
-.logout {
-    margin-top: 30px;
-    background: #2a2a2a;
+.user-info p {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.user-info span {
+    font-size: 11px;
+    color: #888;
+}
+
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: #111;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: #ccc;
+    font-size: 13px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+.logout-btn:hover {
+    border-color: #ff4d4d;
+    color: #ff4d4d;
 }
 
 /* ── MAIN ── */
 .main-content {
     flex: 1;
-    padding: 50px;
+    margin-left: 260px;
+    width: min(1080px, calc(100vw - 320px));
+    max-width: 1080px;
+    margin-right: auto;
+    padding: 50px 40px;
     overflow-y: auto;
+    animation: slideRight .35s ease both;
 }
 
-/* ── TOPBAR ── */
+/* Adjusted content wrapper size to match sidebar layout */
+.main-content {
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
 .topbar {
     display: flex;
     justify-content: space-between;
@@ -375,6 +516,16 @@ td {
     }
     .card { padding: 20px; }
 }
+
+@keyframes slideLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 </style>
 </head>
 
@@ -382,22 +533,7 @@ td {
 <div class="dashboard-container">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 120 120" class="logo-arch">
-                <rect x="10" y="10" width="100" height="100" stroke="#ffc107" stroke-width="3" fill="none"/>
-                <path d="M35 80 V40 H60" stroke="#ffc107" stroke-width="4" fill="none"/>
-                <path d="M60 40 L75 60 L90 40 V80" stroke="#ffc107" stroke-width="4" fill="none"/>
-            </svg>
-            <h2>CIPTA<span>MANUNGGAL</span></h2>
-        </div>
-        <nav>
-            <a href="pengawas_lapangan.php">Dashboard</a>
-            <a href="verifikasi_lapangan.php">Verifikasi</a>
-            <a href="laporan_verifikasi.php" class="active">Laporan Harian</a>
-            <a href="../logout.php" class="logout">Logout</a>
-        </nav>
-    </aside>
+    <?php include 'sidebar.php'; ?>
 
     <!-- MAIN -->
     <main class="main-content">
