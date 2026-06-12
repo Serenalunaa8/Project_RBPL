@@ -7,9 +7,16 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
     exit;
 }
 
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal. Periksa file koneksi.php dan pastikan MySQL berjalan.");
+}
+
 /* ================= AMBIL DATA ================= */
 // Ambil semua izin pekerjaan
 $izin_query = mysqli_query($koneksi, "SELECT * FROM form_izin_pekerjaan ORDER BY tanggal_mulai DESC");
+if (!$izin_query) {
+    die("Query izin pekerjaan gagal: " . mysqli_error($koneksi));
+}
 $izin_list = [];
 while ($i = mysqli_fetch_assoc($izin_query)) {
     $izin_list[] = $i;
@@ -17,6 +24,9 @@ while ($i = mysqli_fetch_assoc($izin_query)) {
 
 // Ambil semua laporan harian
 $laporan_query = mysqli_query($koneksi, "SELECT * FROM laporan_harian ORDER BY tanggal DESC");
+if (!$laporan_query) {
+    die("Query laporan harian gagal: " . mysqli_error($koneksi));
+}
 $laporan_list = [];
 while ($l = mysqli_fetch_assoc($laporan_query)) {
     $laporan_list[] = $l;
@@ -24,6 +34,9 @@ while ($l = mysqli_fetch_assoc($laporan_query)) {
 
 // Ambil foto untuk setiap laporan
 $fotos_query = mysqli_query($koneksi, "SELECT * FROM dokumentasi_lapangan");
+if (!$fotos_query) {
+    die("Query dokumentasi lapangan gagal: " . mysqli_error($koneksi));
+}
 $foto_map = [];
 while ($f = mysqli_fetch_assoc($fotos_query)) {
     if (!isset($foto_map[$f['laporan_id']])) {

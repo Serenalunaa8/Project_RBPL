@@ -1,6 +1,11 @@
 <?php
 session_start();
-include "../koneksi.php";
+$koneksi = null;
+require_once "../koneksi.php";
+
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
+}
 
 // Proteksi akses
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {

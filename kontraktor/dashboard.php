@@ -1,6 +1,11 @@
 <?php
 session_start();
+$koneksi = null;
 require_once '../koneksi.php';
+
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
+}
 
 /* ================= VALIDASI LOGIN ================= */
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "kontraktor") {
@@ -13,18 +18,14 @@ $active_page = 'dashboard';
 
 /* ================= MARK AS READ ================= */
 mysqli_query($koneksi, "
-    UPDATE notifikasi
-    SET status = 'read'
-    WHERE user_id = $kontraktor_id
-    AND status = 'unread'
+    UPDATE notifikasi SET status = 'read' 
+    WHERE user_id = $kontraktor_id AND status = 'unread'
 ");
 
-/* ================= HITUNG NOTIF ================= */
+/* ================= HITUNG IZIN MENUNGGU ================= */
 $jumlah_notif = mysqli_num_rows(mysqli_query($koneksi, "
-    SELECT *
-    FROM form_izin_pekerjaan
-    WHERE kontraktor_id = $kontraktor_id
-    AND status = 'Menunggu Review'
+    SELECT * FROM form_izin_pekerjaan 
+    WHERE kontraktor_id = $kontraktor_id AND status = 'Menunggu Review'
 "));
 
 /* ================= AMBIL NOTIF TERBARU ================= */
@@ -38,7 +39,7 @@ $notif_query = mysqli_query($koneksi, "
 
 /* ================= STATISTIK ================= */
 $stats = mysqli_fetch_assoc(mysqli_query($koneksi, "
-    SELECT
+    SELECT 
         COUNT(*) as total,
         SUM(status = 'Menunggu Review') as menunggu,
         SUM(status = 'Revisi') as revisi,
@@ -46,7 +47,10 @@ $stats = mysqli_fetch_assoc(mysqli_query($koneksi, "
         SUM(status = 'Ditolak') as ditolak
     FROM form_izin_pekerjaan
     WHERE kontraktor_id = $kontraktor_id
-"));
+");
+if ($statsQuery) {
+    $stats = mysqli_fetch_assoc($statsQuery) ?: $stats;
+}
 
 $total     = $stats['total'] ?? 0;
 $menunggu  = $stats['menunggu'] ?? 0;

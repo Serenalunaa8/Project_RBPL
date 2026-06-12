@@ -1,9 +1,40 @@
 <?php
-/**
- * riwayat_laporan_mingguan.php — Riwayat Laporan Mingguan
- * Sistem Pengawasan Proyek — Koordinator Pengawas
- */
+session_start();
+include '../koneksi.php';
+
+// Proteksi Role
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'koordinator') {
+    header('Location: ../login.php');
+    exit;
+}
+
+// Load riwayat laporan mingguan dari database
 $activePage = 'riwayat';
+$riwayat_items = [];
+$tersimpan_count = 0;
+$evaluasi_count = 0;
+$total_count = 0;
+
+if ($koneksi) {
+    $koordinator_id = isset($_SESSION['id']) ? intval($_SESSION['id']) : 0;
+    $where = $koordinator_id > 0 ? "WHERE koordinator_id = $koordinator_id" : '';
+    $query = "SELECT id, judul, periode, progress, total_tk, status, ringkasan, temuan, pencapaian, kendala FROM laporan_mingguan $where ORDER BY id DESC";
+    $result = mysqli_query($koneksi, $query);
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $row['display_id'] = 'LM-' . str_pad($row['id'], 3, '0', STR_PAD_LEFT);
+            $riwayat_items[] = $row;
+            if (strtolower($row['status']) === 'tersimpan') {
+                $tersimpan_count++;
+            }
+            if (strtolower($row['status']) === 'evaluasi tl') {
+                $evaluasi_count++;
+            }
+        }
+        $total_count = count($riwayat_items);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -46,15 +77,15 @@ $activePage = 'riwayat';
   <div style="display:flex;gap:10px;margin-bottom:20px;" class="fade-up" style="animation-delay:.08s">
     <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:20px;
                 padding:6px 16px;font-size:12px;color:#22c55e;">
-      ✓ Tersimpan: <strong>3</strong>
+      ✓ Tersimpan: <strong><?= $tersimpan_count ?></strong>
     </div>
     <div style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);border-radius:20px;
                 padding:6px 16px;font-size:12px;color:#38bdf8;">
-      🔍 Evaluasi TL: <strong>1</strong>
+      🔍 Evaluasi TL: <strong><?= $evaluasi_count ?></strong>
     </div>
     <div style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;
                 padding:6px 16px;font-size:12px;color:var(--muted);">
-      Total: <strong>4</strong>
+      Total: <strong><?= $total_count ?></strong>
     </div>
   </div>
 
@@ -68,92 +99,35 @@ $activePage = 'riwayat';
         </tr>
       </thead>
       <tbody>
-
+    <?php if ($total_count > 0): ?>
+      <?php foreach ($riwayat_items as $item): ?>
         <tr>
-          <td style="color:var(--muted);font-weight:600;">LM-010</td>
-          <td style="font-weight:500;">Laporan Minggu 10 – Mar 2026</td>
-          <td style="color:var(--muted);">18–24 Mar 2026</td>
+          <td style="color:var(--muted);font-weight:600;"><?= htmlspecialchars($item['display_id']) ?></td>
+          <td style="font-weight:500;"><?= htmlspecialchars($item['judul']) ?></td>
+          <td style="color:var(--muted);"><?= htmlspecialchars($item['periode']) ?></td>
           <td>
             <div style="display:flex;align-items:center;gap:8px;">
               <div class="progress-wrap" style="width:100px;">
-                <div class="progress-bar" style="width:38%;"></div>
+                <div class="progress-bar" style="width:<?= intval($item['progress']) ?>%;"></div>
               </div>
-              <span style="font-size:11px;color:var(--muted);">38%</span>
+              <span style="font-size:11px;color:var(--muted);"><?= intval($item['progress']) ?>%</span>
             </div>
           </td>
-          <td>47</td>
-          <td><span class="badge badge-done">Tersimpan</span></td>
+          <td><?= intval($item['total_tk']) ?></td>
+          <td><span class="badge <?= strtolower($item['status']) === 'evaluasi tl' ? 'badge-review' : 'badge-done' ?>"><?= htmlspecialchars($item['status']) ?></span></td>
           <td style="display:flex;gap:6px;">
-            <button class="btn btn-outline btn-sm" onclick="openDetail('LM-010')">Lihat</button>
-            <button class="btn btn-outline btn-sm" onclick="cetakLaporan('LM-010')"
+            <button class="btn btn-outline btn-sm" onclick="openDetail(<?= json_encode($item['id']) ?>)">Lihat</button>
+            <button class="btn btn-outline btn-sm" onclick="cetakLaporan(<?= json_encode($item['id']) ?>)"
               style="color:var(--info);border-color:rgba(56,189,248,.3);">Cetak</button>
           </td>
         </tr>
-
-        <tr>
-          <td style="color:var(--muted);font-weight:600;">LM-009</td>
-          <td style="font-weight:500;">Laporan Minggu 9 – Mar 2026</td>
-          <td style="color:var(--muted);">11–17 Mar 2026</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="progress-wrap" style="width:100px;">
-                <div class="progress-bar" style="width:33%;"></div>
-              </div>
-              <span style="font-size:11px;color:var(--muted);">33%</span>
-            </div>
-          </td>
-          <td>52</td>
-          <td><span class="badge badge-done">Tersimpan</span></td>
-          <td style="display:flex;gap:6px;">
-            <button class="btn btn-outline btn-sm" onclick="openDetail('LM-009')">Lihat</button>
-            <button class="btn btn-outline btn-sm" onclick="cetakLaporan('LM-009')"
-              style="color:var(--info);border-color:rgba(56,189,248,.3);">Cetak</button>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="color:var(--muted);font-weight:600;">LM-008</td>
-          <td style="font-weight:500;">Laporan Minggu 8 – Mar 2026</td>
-          <td style="color:var(--muted);">4–10 Mar 2026</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="progress-wrap" style="width:100px;">
-                <div class="progress-bar" style="width:28%;"></div>
-              </div>
-              <span style="font-size:11px;color:var(--muted);">28%</span>
-            </div>
-          </td>
-          <td>44</td>
-          <td><span class="badge badge-review">Evaluasi TL</span></td>
-          <td style="display:flex;gap:6px;">
-            <button class="btn btn-outline btn-sm" onclick="openDetail('LM-008')">Lihat</button>
-            <button class="btn btn-outline btn-sm" onclick="cetakLaporan('LM-008')"
-              style="color:var(--info);border-color:rgba(56,189,248,.3);">Cetak</button>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="color:var(--muted);font-weight:600;">LM-007</td>
-          <td style="font-weight:500;">Laporan Minggu 7 – Feb 2026</td>
-          <td style="color:var(--muted);">25 Feb – 3 Mar 2026</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div class="progress-wrap" style="width:100px;">
-                <div class="progress-bar" style="width:22%;"></div>
-              </div>
-              <span style="font-size:11px;color:var(--muted);">22%</span>
-            </div>
-          </td>
-          <td>39</td>
-          <td><span class="badge badge-done">Disetujui TL</span></td>
-          <td style="display:flex;gap:6px;">
-            <button class="btn btn-outline btn-sm" onclick="openDetail('LM-007')">Lihat</button>
-            <button class="btn btn-outline btn-sm" onclick="cetakLaporan('LM-007')"
-              style="color:var(--info);border-color:rgba(56,189,248,.3);">Cetak</button>
-          </td>
-        </tr>
-
-      </tbody>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <tr>
+        <td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Tidak ada riwayat laporan mingguan.</td>
+      </tr>
+    <?php endif; ?>
+  </tbody>
     </table>
   </div>
 
@@ -187,48 +161,17 @@ document.getElementById('date-chip').textContent =
   d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
 // Riwayat data
-const riwayatData = {
-  'LM-010': {
-    judul: 'Laporan Minggu 10 – Mar 2026',
-    periode: '18–24 Mar 2026',
-    progress: 38,
-    tk: 47,
-    status: 'Tersimpan',
-    ringkasan: 'Minggu ke-10 mencakup pekerjaan pemadatan tanah, galian pondasi zona B dan C, serta awal pemasangan pondasi batu kali.',
-    temuan: 'Cuaca mendung pada hari Rabu memperlambat pekerjaan galian. Material batu kali datang terlambat 1 hari.',
-    rekomendasi: 'Koordinasi lebih awal dengan supplier material agar tidak mengganggu jadwal.'
-  },
-  'LM-009': {
-    judul: 'Laporan Minggu 9 – Mar 2026',
-    periode: '11–17 Mar 2026',
-    progress: 33,
-    tk: 52,
-    status: 'Tersimpan',
-    ringkasan: 'Pekerjaan persiapan lahan dan mobilisasi alat berat selesai. Pemasangan patok dan bowplank selesai 100%.',
-    temuan: 'Tidak ada kendala berarti selama minggu ini. Cuaca cerah mendukung produktivitas.',
-    rekomendasi: 'Percepat pengiriman material cor untuk minggu berikutnya.'
-  },
-  'LM-008': {
-    judul: 'Laporan Minggu 8 – Mar 2026',
-    periode: '4–10 Mar 2026',
-    progress: 28,
-    tk: 44,
-    status: 'Evaluasi TL',
-    ringkasan: 'Pekerjaan pembersihan lokasi dan pengukuran awal selesai. Mobilisasi peralatan 80% selesai.',
-    temuan: 'Terdapat hambatan akses jalan masuk. Diperlukan perbaikan jalan sementara.',
-    rekomendasi: 'Segera perbaiki akses jalan sebelum mobilisasi alat berat utama dilakukan.'
-  },
-  'LM-007': {
-    judul: 'Laporan Minggu 7 – Feb 2026',
-    periode: '25 Feb – 3 Mar 2026',
-    progress: 22,
-    tk: 39,
-    status: 'Disetujui TL',
-    ringkasan: 'Kick-off proyek dan penyerahan lahan. Pembersihan lokasi dimulai. Tim inti telah hadir seluruhnya.',
-    temuan: 'Kondisi lahan sesuai dengan data awal. Tidak ada temuan signifikan.',
-    rekomendasi: 'Mulai pengukuran detail dan pemasangan papan nama proyek segera.'
-  }
-};
+const riwayatData = <?= json_encode(array_reduce($riwayat_items, function($carry, $item){ $carry[$item['id']] = [
+        'display_id' => $item['display_id'],
+        'judul' => $item['judul'],
+        'periode' => $item['periode'],
+        'progress' => intval($item['progress']),
+        'tk' => intval($item['total_tk']),
+        'status' => $item['status'],
+        'ringkasan' => $item['ringkasan'],
+        'temuan' => $item['temuan'],
+        'rekomendasi' => $item['pencapaian'] ?: $item['kendala'] ?: ''
+    ]; return $carry; }, []), JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP); ?>;
 
 function openDetail(id){
   const r = riwayatData[id];

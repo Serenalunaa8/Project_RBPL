@@ -1,6 +1,11 @@
 <?php
 session_start();
-include "../koneksi.php";
+$koneksi = null;
+require_once "../koneksi.php";
+
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
+}
 
 // Proteksi Role
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "koordinator") {
@@ -21,22 +26,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $status = $action === 'approve' ? 'Tervalidasi' : 'Diminta Revisi';
         $stmt = mysqli_prepare($koneksi, "UPDATE laporan_harian SET status = ? WHERE id = ?");
-        mysqli_stmt_bind_param($stmt, 'si', $status, $laporan_id);
-        if (mysqli_stmt_execute($stmt)) {
-            $success = $action === 'approve'
-                ? 'Laporan berhasil disahkan dan status disimpan ke database.'
-                : 'Laporan berhasil dikembalikan untuk revisi dan status disimpan ke database.';
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'si', $status, $laporan_id);
+            if (mysqli_stmt_execute($stmt)) {
+                $success = $action === 'approve'
+                    ? 'Laporan berhasil disahkan dan status disimpan ke database.'
+                    : 'Laporan berhasil dikembalikan untuk revisi dan status disimpan ke database.';
+            } else {
+                $error = 'Gagal memperbarui status laporan. Silakan coba lagi.';
+            }
+            mysqli_stmt_close($stmt);
         } else {
-            $error = 'Gagal memperbarui status laporan. Silakan coba lagi.';
+            $error = 'Gagal mempersiapkan query. Silakan coba lagi.';
         }
-        mysqli_stmt_close($stmt);
     }
 }
 
 $laporan_result = mysqli_query($koneksi, "SELECT * FROM laporan_harian ORDER BY tanggal DESC");
 $laporan_list = [];
-while ($laporan = mysqli_fetch_assoc($laporan_result)) {
-    $laporan_list[] = $laporan;
+if ($laporan_result) {
+    while ($laporan = mysqli_fetch_assoc($laporan_result)) {
+        $laporan_list[] = $laporan;
+    }
+} else {
+    $error = 'Gagal memuat data laporan. Silakan coba lagi nanti.';
 }
 
 function safe($value) {

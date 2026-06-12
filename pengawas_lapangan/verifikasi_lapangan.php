@@ -1,6 +1,6 @@
 <?php
 session_start();
-include "../koneksi.php";
+require_once "../koneksi.php";
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
     header("Location: ../login.php");
@@ -8,8 +8,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != "pengawas") {
 }
 
 // Pastikan koneksi database tersedia
-if (!$koneksi) {
-    die("Koneksi database gagal");
+if (!isset($koneksi) || !$koneksi) {
+    die("Koneksi database gagal. Periksa file koneksi.php dan server MySQL.");
 }
 
 // Get ID dari URL jika ada, untuk filter

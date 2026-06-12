@@ -1,5 +1,9 @@
 <?php
-include "../config/koneksi.php";
+$koneksi = null;
+require_once "../koneksi.php";
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
+}
 ?>
 
 <!DOCTYPE html>
@@ -23,8 +27,9 @@ include "../config/koneksi.php";
         </tr>
 
         <?php
-        $data = mysqli_query($conn,"SELECT * FROM izin_pekerjaan");
-        while($d = mysqli_fetch_array($data)){
+        $data = mysqli_query($koneksi, "SELECT * FROM izin_pekerjaan");
+        if ($data) {
+            while($d = mysqli_fetch_array($data)){
         ?>
         <tr>
             <td><?= $d['nama_pekerjaan']; ?></td>
@@ -36,7 +41,11 @@ include "../config/koneksi.php";
                 <a class="btn-reject" href="proses_verifikasi.php?id=<?= $d['id_izin']; ?>&aksi=Ditolak">Tolak</a>
             </td>
         </tr>
-        <?php } ?>
+        <?php }
+        } else {
+            echo '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ccc;">Tidak ada data izin pekerjaan.</td></tr>';
+        }
+        ?>
     </table>
 
 </div>

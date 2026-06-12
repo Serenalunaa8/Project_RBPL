@@ -1,11 +1,16 @@
 <?php
 session_start();
+$koneksi = null;
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "kontraktor") {
     header("Location: ../login.php");
     exit;
 }
 
 require_once '../koneksi.php'; 
+
+if (!isset($koneksi) || !$koneksi) {
+    die('Koneksi database gagal: ' . mysqli_connect_error());
+}
 
 if (!isset($_SESSION['id'])) {
     die("Session kontraktor tidak ditemukan. Silakan login ulang.");
@@ -15,14 +20,17 @@ $kontraktor_id = $_SESSION['id'];
 
 // Ambil semua pengajuan izin milik kontraktor ini menggunakan MySQLi
 $query = "SELECT * FROM form_izin_pekerjaan 
-          WHERE id = ? 
+          WHERE kontraktor_id = ? 
           ORDER BY created_at DESC";
 
 $stmt = mysqli_prepare($koneksi, $query);
+if (!$stmt) {
+    die('Query gagal: ' . mysqli_error($koneksi));
+}
 mysqli_stmt_bind_param($stmt, "i", $kontraktor_id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
-$izin_list = mysqli_fetch_all($result, MYSQLI_ASSOC);
+$izin_list = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
 mysqli_stmt_close($stmt);
 
 // Hitung statistik
