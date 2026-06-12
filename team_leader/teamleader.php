@@ -1,5 +1,3 @@
-<!-- hi -->
- <!-- hi -->
 <?php
 session_start();
 if (!isset($_SESSION['role']) || $_SESSION['role'] != "teamleader") {
@@ -21,6 +19,11 @@ $stats = [
     'disetujui' => mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as cnt FROM laporan_bulanan WHERE status = 'Disetujui'"))['cnt'] ?? 0,
     'revisi' => mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as cnt FROM laporan_bulanan WHERE status = 'Diminta Revisi'"))['cnt'] ?? 0
 ];
+
+$latest_reports_result = mysqli_query($koneksi, "SELECT id, judul, periode, deskripsi, status FROM laporan_bulanan ORDER BY created_at DESC LIMIT 3");
+if ($latest_reports_result === false) {
+    $latest_reports_result = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -28,7 +31,7 @@ $stats = [
     <meta charset="UTF-8">
     <title>Dashboard Team Leader | Cipta Manunggal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="asset/teamleader.css">
+    <link rel="stylesheet" href="asset/teamleader.css?v=20260612">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Dashboard-specific extras */
@@ -224,30 +227,49 @@ $stats = [
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 120 120" class="logo-arch">
-                <rect x="10" y="10" width="100" height="100"/>
-                <path d="M35 80 V40 H60"/>
-                <path d="M60 40 L75 60 L90 40 V80"/>
-            </svg>
-            <div class="brand-name">CIPTA<br><span>MANUNGGAL</span></div>
+        <div class="brand">
+            <div class="brand-inner">
+                <svg viewBox="0 0 120 120" class="logo-arch">
+                    <rect x="10" y="10" width="100" height="100"/>
+                    <path d="M35 80 V40 H60"/>
+                    <path d="M60 40 L75 60 L90 40 V80"/>
+                </svg>
+                <div class="brand-text">
+                    <h1>CIPTA <span>MANUNGGAL</span></h1>
+                    <p>Team Leader</p>
+                </div>
+            </div>
         </div>
-
-        <nav>
-            <a href="teamleader.php" class="active">
-                <span class="nav-icon">⊞</span> Dashboard
+        <nav class="nav-section">
+            <div class="nav-label">Menu Utama</div>
+            <a href="teamleader.php" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>
+                Dashboard
             </a>
-            <a href="evaluasi_laporan_bulanan.php">
-                <span class="nav-icon">📊</span> Evaluasi Laporan
+            <a href="evaluasi_laporan_bulanan.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12h12"/><path d="M5 8h7"/><path d="M7 4h5"/></svg>
+                Evaluasi Laporan
             </a>
-            <a href="riwayat_laporan_bulanan.php">
-                <span class="nav-icon">🗂</span> Riwayat Laporan
+            <a href="riwayat_laporan_bulanan.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2 1.5"/></svg>
+                Riwayat Laporan
             </a>
         </nav>
 
-        <div class="logout-link">
-            <a href="../logout.php">
-                <span class="nav-icon">↩</span> Logout
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="avatar">TL</div>
+                <div class="user-info">
+                    <p><?= htmlspecialchars($username) ?></p>
+                    <span>Team Leader Aktif</span>
+                </div>
+            </div>
+            <a href="../logout.php" class="logout-btn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 2H3a1 1 0 00-1 1v10a1 1 0 001 1h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Logout
             </a>
         </div>
     </aside>
@@ -369,38 +391,35 @@ $stats = [
             <div class="chart-card">
                 <h3>Laporan Bulanan Terbaru</h3>
 
-                <div class="weekly-row">
-                    <div class="weekly-row-left">
-                        <strong>April 2026</strong>
-                        <span>Evaluasi struktur dan kualitas finishing</span>
+                        <?php if (!empty($latest_reports_result) && mysqli_num_rows($latest_reports_result) > 0): ?>
+                    <?php while ($report = mysqli_fetch_assoc($latest_reports_result)): ?>
+                        <div class="weekly-row">
+                            <div class="weekly-row-left">
+                                <strong><?= htmlspecialchars($report['periode']) ?></strong>
+                                <span><?= htmlspecialchars($report['judul']) ?></span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <?php if ($report['status'] === 'Disetujui'): ?>
+                                    <span class="badge badge-approved">Disetujui</span>
+                                    <a href="riwayat_laporan_bulanan.php" class="btn btn-secondary btn-sm">Arsip</a>
+                                <?php elseif ($report['status'] === 'Diminta Revisi'): ?>
+                                    <span class="badge badge-revision">Diminta Revisi</span>
+                                    <a href="evaluasi_laporan_bulanan.php" class="btn btn-secondary btn-sm">Periksa</a>
+                                <?php else: ?>
+                                    <span class="badge badge-pending">Belum Dievaluasi</span>
+                                    <a href="evaluasi_laporan_bulanan.php" class="btn btn-primary btn-sm">Evaluasi</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div class="weekly-row">
+                        <div class="weekly-row-left">
+                            <strong>Tidak ada laporan bulanan</strong>
+                            <span>Belum ada data terbaru</span>
+                        </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-pending">Belum Dievaluasi</span>
-                        <a href="evaluasi_laporan_bulanan.php" class="btn btn-primary btn-sm">Evaluasi</a>
-                    </div>
-                </div>
-
-                <div class="weekly-row">
-                    <div class="weekly-row-left">
-                        <strong>Maret 2026</strong>
-                        <span>Progress jalan akses dan instalasi MEP</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-approved">Disetujui</span>
-                        <a href="riwayat_laporan_bulanan.php" class="btn btn-secondary btn-sm">Arsip</a>
-                    </div>
-                </div>
-
-                <div class="weekly-row">
-                    <div class="weekly-row-left">
-                        <strong>Februari 2026</strong>
-                        <span>Pelaksanaan beton lantai dan pengecatan</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="badge badge-revision">Diminta Revisi</span>
-                        <a href="evaluasi_laporan_bulanan.php" class="btn btn-secondary btn-sm">Periksa</a>
-                    </div>
-                </div>
+                <?php endif; ?>
 
             </div>
 
