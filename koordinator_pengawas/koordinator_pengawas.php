@@ -58,7 +58,7 @@ $active_page = 'dashboard';
 <main class="main">
     <!-- TOPBAR -->
     <div class="topbar">
-        <h2>Dashboard</h2>
+        <h2>Dashboard Koordinator Pengawas</h2>
         <div class="topbar-right">
             <div class="date-chip" id="date-chip"></div>
             <a href="Tinjau_laporan_harian.php" class="notif-btn">

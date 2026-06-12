@@ -38,7 +38,7 @@
     <div class="user-card">
       <div class="avatar">KP</div>
       <div class="user-info">
-        <p>Koordinator</p>
+        <p>Koordinator Pengawas</p>
         <span>Pengawas Aktif</span>
       </div>
     </div>
