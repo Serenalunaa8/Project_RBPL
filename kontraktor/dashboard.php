@@ -38,7 +38,7 @@ $notif_query = mysqli_query($koneksi, "
 ");
 
 /* ================= STATISTIK ================= */
-$stats = mysqli_fetch_assoc(mysqli_query($koneksi, "
+$statsQuery = mysqli_query($koneksi, "
     SELECT 
         COUNT(*) as total,
         SUM(status = 'Menunggu Review') as menunggu,
@@ -48,9 +48,14 @@ $stats = mysqli_fetch_assoc(mysqli_query($koneksi, "
     FROM form_izin_pekerjaan
     WHERE kontraktor_id = $kontraktor_id
 ");
-if ($statsQuery) {
-    $stats = mysqli_fetch_assoc($statsQuery) ?: $stats;
-}
+
+$stats = mysqli_fetch_assoc($statsQuery) ?: [
+    'total' => 0,
+    'menunggu' => 0,
+    'revisi' => 0,
+    'disetujui' => 0,
+    'ditolak' => 0
+];
 
 $total     = $stats['total'] ?? 0;
 $menunggu  = $stats['menunggu'] ?? 0;
