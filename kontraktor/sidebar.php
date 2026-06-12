@@ -100,29 +100,6 @@ if (!isset($active_page)) {
                 </span>
             <?php endif; ?>
         </a>
-
-        <a class="nav-item <?= $active_page=='notifikasi' ? 'active' : '' ?>"
-           href="detail_notifikasi.php">
-
-            <svg class="nav-icon"
-                 viewBox="0 0 16 16"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="1.5">
-
-                <path d="M8 1a5 5 0 015 5v3l1 2H2l1-2V6a5 5 0 015-5z"/>
-                <path d="M6.5 13.5a1.5 1.5 0 003 0"/>
-            </svg>
-
-            Notifikasi
-
-            <?php if(isset($jumlah_notif) && $jumlah_notif > 0): ?>
-                <span class="nav-badge gold">
-                    <?= $jumlah_notif ?>
-                </span>
-            <?php endif; ?>
-        </a>
-
     </nav>
 
     <div class="sidebar-footer">
