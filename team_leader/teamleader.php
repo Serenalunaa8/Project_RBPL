@@ -280,7 +280,7 @@ if ($latest_reports_result === false) {
         <!-- TOPBAR -->
         <header class="topbar">
             <div class="topbar-left">
-                <h1>Halo, <?php echo htmlspecialchars($username); ?></h1>
+                <h1>Dashboard Team Leader</h1>
                 <p>Pantau evaluasi laporan bulanan dan verifikasi progres proyek.</p>
             </div>
             <span class="role-badge">TEAM LEADER</span>
