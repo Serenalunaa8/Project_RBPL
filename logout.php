@@ -8,6 +8,6 @@ $_SESSION = [];
 session_destroy();
 
 // Arahkan kembali ke halaman login
-header("Location: .php");
+header("Location: index.php");
 exit();
 ?>
