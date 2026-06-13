@@ -30,18 +30,18 @@ if ($data) {
             exit;
         } else {
             $_SESSION['error'] = "Role tidak valid, periksa kembali username dan password!";
-            header("Location: login.php");
+            header("Location: index.php");
             exit;
         }
 
     } else {
         $_SESSION['error'] = "Password salah!";
-        header("Location: login.php");
+        header("Location: index.php");
         exit;
     }
 } else {
     $_SESSION['error'] = "Username tidak ditemukan!";
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 ?>
